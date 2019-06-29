@@ -115,9 +115,13 @@ def common_word_norm_probability_histogram() -> (ndarray, ndarray):
     norms, _ = calc_norms(custom_vec)
     bins = np.linspace(0, 10, 300)
     norm_histogram, _ = np.histogram(norms, bins)
+    norm_histogram[0] = 1
     common_histogram, _ = np.histogram(common_norms, bins)
     histogram = common_histogram / norm_histogram
-    histogram[np.isnan(histogram)] = 0
+    # histogram[np.isnan(histogram)] = 0
+    if len(np.argwhere(np.isnan(histogram))) > 0:
+        raise ValueError('unexpected nan')
+
     probability = histogram / histogram[np.isfinite(histogram)].sum()
     return probability, bins
 
@@ -326,24 +330,29 @@ run_plot_density_histogram()
 
 
 #%% print_word_separation
+def word_split_probability(text: str):
+    text = text.lower()
+    print(f'orig norm: {LA.norm(wv.word_vec(text))}')
+    df = pd.DataFrame(index=range(1, len(text)), columns=['word1', 'word2', 'norm1', 'norm2', 'prob1', 'prob2', 'prob'])
+    for i in df.index:
+        word1 = text[:i]
+        word2 = text[i:]
+        df.loc[i, 'word1'] = word1
+        df.loc[i, 'word2'] = word2
+        df.loc[i, 'norm1'] = LA.norm(custom_vec(word1))
+        df.loc[i, 'norm2'] = LA.norm(custom_vec(word2))
+
+    df['prob1'] = density_histogram[np.digitize(df['norm1'].values, bins)]
+    df['prob2'] = density_histogram[np.digitize(df['norm2'].values, bins)]
+    df['prob'] = df['prob1'] * df['prob2']
+    print(df)
+
+
 pdf_df = pd.read_csv('data/ng-norm-density-hist.csv')
 density_histogram = pdf_df['density'].values
 ng_norms = pdf_df['ng_norm']
 bins = np.loadtxt('data/hist-bins.txt')
 
 text = 'fictionaluniverse'
-print(f'orig norm: {LA.norm(wv.word_vec(text))}')
-for i in range(1, len(text)):
-    word_1 = text[:i].lower()
-    word_2 = text[i:].lower()
-    norm1 = LA.norm(custom_vec(word_1))
-    norm2 = LA.norm(custom_vec(word_2))
-    prob1 = histogram_val(density_histogram, bins, norm1)
-    prob2 = histogram_val(density_histogram, bins, norm2)
-    print(f'norm {word_1} {norm1}, norm2 {word_2} {norm2}, prob1 {prob1} prob2 {prob2}, prob {prob1 * prob2}')
-
-print(f'1 {LA.norm(wv.vectors_vocab[wv.vocab["congratulations"].index])}')
-print(f'1 {LA.norm(wv.get_vector("congratulations"))}')
-print(f'2 {LA.norm(wv.vectors_vocab[wv.vocab["videos"].index])}')
-print(f'2 {LA.norm(wv.get_vector("videos"))}')
+word_split_probability(text)
 
