@@ -1,17 +1,4 @@
-#%% load model from disk
-
-from gensim.models.fasttext import load_facebook_vectors
-from gensim.test.utils import datapath
-
-cap_path = datapath("/home/vackosar/src/fasttext-vector-norms-and-oov-words/data/cc.en.300.bin")
-# fb_model = load_facebook_model(cap_path)
-wv = load_facebook_vectors(cap_path)
-wv.init_sims()
-print(f'model: maxn: {wv.max_n}, minn {wv.min_n}, vocab size: {len(wv.vectors_vocab)}')
-
-
-#%% shared methods
-import re
+from math import sqrt
 from typing import Callable
 
 import matplotlib.pyplot as plt
@@ -19,14 +6,31 @@ import numpy as np
 import pandas as pd
 import seaborn
 from gensim import matutils
+from gensim.models.fasttext import load_facebook_vectors
 from gensim.models.utils_any2vec import ft_ngram_hashes
-from math import log, sqrt
+from gensim.test.utils import datapath
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
 from numpy import linalg as LA
 from numpy.core.multiarray import ndarray
 from scipy.optimize import leastsq
 from scipy.stats import t
+
+#%% load model from disk
+
+# FIXME use working dir
+cap_path = datapath("/home/vackosar/src/fasttext-vector-norms-and-oov-words/data/input/cc.en.300.bin")
+# fb_model = load_facebook_model(cap_path)
+wv = load_facebook_vectors(cap_path)
+wv.init_sims()
+print(f'model: maxn: {wv.max_n}, minn {wv.min_n}, vocab size: {len(wv.vectors_vocab)}')
+
+
+#%% shared methods
+tf_label = 'tf (Fasttext Model Word Count)'
+ng_norm_label = 'ng_norm = ngram_count * ngram_only_norm i.e. (only sub-ngrams used)'
+mit_10k_common_label = 'MIT 10k Common Words'
+fasttext_model_vocab_label = 'Fasttext Model 2M Vocabulary Words'
 
 
 def select_word_index(min_count: int, max_count: int, min_norm: float, max_norm: float) -> int:
@@ -41,7 +45,7 @@ def select_word_index(min_count: int, max_count: int, min_norm: float, max_norm:
 
 
 def common_words_norms(get_vec: Callable):
-    words: ndarray = pd.read_csv('data/mit-10k-words.csv', header=None, names=['word'])['word'].values
+    words: ndarray = pd.read_csv('data/input/mit-10k-words.csv', header=None, names=['word'])['word'].values
     norms = []
     tfs = []
     for i, word in enumerate(words):
@@ -129,7 +133,7 @@ def histogram_position(bins, value) -> int:
 
 
 def histogram_val(histogram: ndarray, bins: ndarray, value: float) -> float:
-    return histogram[histogram_position(bins, value)]
+    return histogram[np.digitize(value, bins)]
 
 
 def no_ngram_vector(word: str) -> ndarray:
@@ -145,15 +149,15 @@ norms, tfs = calc_norms(custom_vec)
 
 seaborn.set(style='white', rc={'figure.figsize': (12, 8)})
 fig: Figure = plt.figure()
-plt.title('FastText norm-tf')
-plt.xlabel('tf (fasttext word count)')
+plt.title('FastText NG_Norm - TF')
+plt.xlabel(tf_label)
 plt.xscale('log')
-plt.ylabel('norm')
+plt.ylabel(ng_norm_label)
 ax: Axes = fig.add_subplot(1, 1, 1) #axisbg="1.0")
-ax.scatter(tfs, norms, alpha=0.6, edgecolors='none', s=5, label='all')
+ax.scatter(tfs, norms, alpha=0.6, edgecolors='none', s=5, label=fasttext_model_vocab_label)
 
 common_words_norm, common_words_tfs = common_words_norms(custom_vec)
-ax.scatter(common_words_tfs, common_words_norm, alpha=0.8, edgecolors='none', s=5, label='common')
+ax.scatter(common_words_tfs, common_words_norm, alpha=0.8, edgecolors='none', s=5, label=mit_10k_common_label)
 
 sorted_idxs = matutils.argsort(norms, reverse=True)
 
@@ -183,18 +187,17 @@ fig.show()
 norms, tfs = calc_norms(standard_vec)
 seaborn.set(style='white', rc={'figure.figsize': (12, 8)})
 fig: Figure = plt.figure()
-plt.title('FastText norm-tf')
-plt.xlabel('tf (fasttext word count)')
+plt.title('FastText Norm - TF')
+plt.xlabel(tf_label)
 plt.xscale('log')
-plt.ylabel('norm')
+plt.ylabel('standard norm (Gensim)')
 ax: Axes = fig.add_subplot(1, 1, 1) #axisbg="1.0")
-ax.scatter(tfs, norms, alpha=0.6, edgecolors='none', s=5, label='all')
+ax.scatter(tfs, norms, alpha=0.6, edgecolors='none', s=5, label=fasttext_model_vocab_label)
 
 common_words_norm, common_words_tfs = common_words_norms(standard_vec)
-ax.scatter(common_words_tfs, common_words_norm, alpha=0.8, edgecolors='none', s=5, label='common')
+ax.scatter(common_words_tfs, common_words_norm, alpha=0.8, edgecolors='none', s=5, label=mit_10k_common_label)
 
 sorted_idxs = matutils.argsort(norms, reverse=True)
-# rnd_word_idx = [sorted_idxs[400000], sorted_idxs[800000], sorted_idxs[1200000], sorted_idxs[1600000], sorted_idxs[1800000]]
 
 rnd_word_idx = [
     sorted_idxs[400000], sorted_idxs[800000], sorted_idxs[1200000], sorted_idxs[1600000], sorted_idxs[1800000]
@@ -222,18 +225,17 @@ fig.show()
 norms, tfs = calc_norms(no_ngram_vector)
 seaborn.set(style='white', rc={'figure.figsize': (12, 8)})
 fig: Figure = plt.figure()
-plt.title('FastText norm-tf')
-plt.xlabel('tf (fasttext word count)')
+plt.title('FastText Word Whole Word Token - TF')
+plt.xlabel(tf_label)
 plt.xscale('log')
-plt.ylabel('norm')
+plt.ylabel('norm of the whole words without sub-ngrams')
 ax: Axes = fig.add_subplot(1, 1, 1) #axisbg="1.0")
-ax.scatter(tfs, norms, alpha=0.6, edgecolors='none', s=5, label='all')
+ax.scatter(tfs, norms, alpha=0.6, edgecolors='none', s=5, label=fasttext_model_vocab_label)
 
 common_words_norm, common_words_tfs = common_words_norms(no_ngram_vector)
-ax.scatter(common_words_tfs, common_words_norm, alpha=0.8, edgecolors='none', s=5, label='common')
+ax.scatter(common_words_tfs, common_words_norm, alpha=0.8, edgecolors='none', s=5, label=mit_10k_common_label)
 
 sorted_idxs = matutils.argsort(norms, reverse=True)
-# rnd_word_idx = [sorted_idxs[400000], sorted_idxs[800000], sorted_idxs[1200000], sorted_idxs[1600000], sorted_idxs[1800000]]
 
 rnd_word_idx = [
     sorted_idxs[400000], sorted_idxs[800000], sorted_idxs[1200000], sorted_idxs[1600000], sorted_idxs[1800000]
@@ -257,114 +259,88 @@ fig.savefig('data/no-ngram-figure.png')
 fig.show()
 
 
-# %% def plot_histogram_norm():
+# %% def plot_histogram_of_common_and_vocab_ng_norms():
 norms, _ = calc_norms(custom_vec)
 print(f'vecs norms avg: {np.average(norms[np.isfinite(norms)], axis=0)}')
-# norms = np.apply_over_axes(lambda w: LA.norm(wv.word_vec(w)), 1, words)
-# norms = np.apply_along_axis(LA.norm, 0, vectors_vocab)
-# norms = np.apply_along_axis(LA.norm, 1, vectors_vocab)
 print(f'norms: {norms[0:10].tolist()}')
 seaborn.set(style='white', rc={'figure.figsize': (12, 8)})
 fig: Figure = plt.figure()
-plt.title('FastText norm-tf')
-plt.xlabel('tf (fasttext word count)')
+plt.title('FastText NG_Norm Distribution')
+plt.ylabel('Word Count Density')
+plt.xlabel(tf_label)
 ax: Axes = fig.add_subplot(1, 1, 1) #axisbg="1.0")
 bins = np.linspace(0, 10, 100)
-ax.hist(norms, bins=bins, alpha=0.5, label='fasttext', density=True)
+ax.hist(norms, bins=bins, alpha=0.5, label=fasttext_model_vocab_label, density=True)
 common_norms, _ = common_words_norms(custom_vec)
 print(f'common vecs norms avg: {np.average(common_norms[np.isfinite(common_norms)], axis=0)}')
-ax.hist(common_norms, bins=bins, alpha=0.5, label='common', density=True)
+ax.hist(common_norms, bins=bins, alpha=0.5, label=mit_10k_common_label, density=True)
 ax.grid(True, which='both')
 ax.legend()
 fig.tight_layout()
-fig.savefig('data/hist.png')
+fig.savefig('data/ng_norm_hist.png')
 fig.show()
 
 
-#%% def fit_gaussian():
-fitfunc = lambda mu, sigma, x: 1 / (sigma * np.sqrt(2 * np.pi)) * np.exp(-(x - mu) ** 2 / (2 * sigma ** 2))
-gaussian = lambda x: fitfunc(30, 2, x)  #3*np.exp(-(30-x)**2/20.)
-X = np.arange(100)
-Y = gaussian(X)
-# X = np.arange(data.size)
-# mu = np.sum(X*data)/np.sum(data)
-# sigma = np.sqrt(np.abs(np.sum((X-mu)**2*data)/np.sum(data)))
-# max = data.max()
-# Target function
-# Initial guess for the first set's parameters
-# p1 = r_[-15., 0., -1.]
-# Initial guess for the second set's parameters
-# p2 = r_[-15., 0., -1.]
-# Initial guess for the common period
-# T = 0.8
-# Vector of the parameters to fit, it contains all the parameters of the problem, and the period of the oscillation is not there twice !
-# p = r_[T, p1, p2]
-# Cost function of the fit, compare it to the previous example.
-errfunc = lambda p, x, y: fitfunc(p[0], p[1], x) - y
-# This time we need to pass the two sets of data, there are thus four "args".
-starting_param = np.array([20, 1])
-p, success = leastsq(errfunc, starting_param, args=(X, Y))
-print(f'p {p}, succ {success}')
-# plt.plot(X, Y)
-fig: Figure = plt.figure()
-ax: Axes = fig.add_subplot(1, 1, 1) #axisbg="1.0")
-ax.plot(X, gaussian(X))
-ax.plot(X, fitfunc(p[0], p[1], X))
-plt.show()
-
-#%% calc_and_store_custom_vec_histogram_density():
-probability_histogram, bins = common_word_norm_probability_histogram()
+#%% calc_and_store_ng_norm_density_histogram():
+density_histogram, bins = common_word_norm_probability_histogram()
 # np.savetxt('data/hist-probability.txt', probability_histogram)
-X = pd.Series(bins).rolling(window=2).mean().iloc[1:].values
-pd.DataFrame({'probability': probability_histogram, 'x': X}).to_csv('data/hist-probability-norm.csv', index=False)
-# np.savetxt('data/hist-bins.txt', bins)
+ng_norms = pd.Series(bins).rolling(window=2).mean().iloc[1:].values
+pd.DataFrame({'density': density_histogram, 'ng_norm': ng_norms}).to_csv('data/ng-norm-density-hist.csv', index=False)
+np.savetxt('data/hist-bins.txt', bins)
+
+
+#%%
+def run_plot_density_histogram():
+    pdf_df = pd.read_csv('data/ng-norm-density-hist.csv')
+    density_histogram = pdf_df['density'].values
+    ng_norms = pdf_df['ng_norm']
+
+    bin_width = ng_norms[1] - ng_norms[0]
+    fitfunc = lambda mu, sigma, df, x: bin_width * t.pdf(x, df, mu, sigma)
+    errfunc = lambda p, x, y: fitfunc(p[0], p[1], p[2], x) - y
+
+    mean = np.sum(density_histogram * bin_width * ng_norms)
+    sigma = np.sqrt(np.sum(density_histogram * bin_width * (ng_norms - mean) ** 2))
+    starting_param = np.array([mean, sigma, 3])
+    print(f'starting p {starting_param}')
+    p, success = leastsq(errfunc, starting_param, args=(ng_norms, density_histogram))
+    fitted_density = fitfunc(p[0], p[1], p[2], ng_norms)
+    print(f'fitted_density params: {p}, success value: {success}')
+
+    fig: Figure = plt.figure()
+    plt.title(mit_10k_common_label + 'FastText NG-Norm Density Histogram')
+    plt.ylabel('Probability Density')
+    plt.xlabel(ng_norm_label)
+    ax: Axes = fig.add_subplot(1, 1, 1) #axisbg="1.0")
+    ax.bar(ng_norms, density_histogram, label='original distribution', color='grey', alpha=1, width=bin_width, edgecolor='grey')
+    # ax.plot(X, fitted_density, label='fitted_density', color='green', alpha=0.5, width=bin_width) #, linestyle='--')
+    fit_label = f'fitted t-distribution (df: {np.round(p[2], 1)}, mean: {np.round(p[0], 1)}, var: {np.round(p[1], 1)})'
+    ax.plot(ng_norms, fitted_density, label=fit_label, color='orange', alpha=1, linestyle='--')
+    ax.grid(True, which='both')
+    ax.legend()
+    fig.savefig('data/hist-norm.png')
+    fig.show()
+
+
+run_plot_density_histogram()
 
 
 #%% print_word_separation
-pdf_df = pd.read_csv('data/hist-probability-norm.csv')
-probability_histogram = pdf_df['probability'].values
-X = pdf_df['x']
+pdf_df = pd.read_csv('data/ng-norm-density-hist.csv')
+density_histogram = pdf_df['density'].values
+ng_norms = pdf_df['ng_norm']
+bins = np.loadtxt('data/hist-bins.txt')
 
-bin_width = X[1] - X[0]
-# fitfunc = lambda mu, sigma, x: bin_width * 1 / (np.sqrt(2 * np.pi * sigma ** 2)) * np.exp(- 1 / 2 * ((x - mu) / sigma) ** 2)
-#fitfunc = lambda mu, sigma, x: bin_width * norm.pdf(x, mu, sigma)
-fitfunc = lambda mu, sigma, df, x: bin_width * t.pdf(x, df, mu, sigma)
-errfunc = lambda p, x, y: fitfunc(p[0], p[1], p[2], x) - y
-
-mean = np.sum(probability_histogram * X)
-sigma = np.sqrt(np.sum(probability_histogram * (X - mean) ** 2))
-starting_param = np.array([mean, sigma, 2])
-# starting_param = np.array([2.5, 0.5])
-print(f'starting p {starting_param}')
-p, success = leastsq(errfunc, starting_param, args=(X, probability_histogram))
-fitted = fitfunc(p[0], p[1], p[2], X)
-# fitted = fitfunc(mean, sigma, X)
-print(f'p {p}, succ {success}')
-
-fig: Figure = plt.figure()
-# plt.title('FastText norm-tf')
-# plt.xlabel('tf (fasttext word count)')
-ax: Axes = fig.add_subplot(1, 1, 1) #axisbg="1.0")
-ax.bar(X, probability_histogram, label='probability', color='grey', alpha=1, width=bin_width)
-# ax.plot(X, fitted, label='fitted', color='green', alpha=0.5, width=bin_width) #, linestyle='--')
-ax.plot(X, fitted, label='fitted', color='orange', alpha=1, linestyle='--')
-ax.grid(True, which='both')
-ax.legend()
-fig.savefig('data/hist-norm.png')
-fig.show()
-
-text = 'accessorykit'
+text = 'fictionaluniverse'
 print(f'orig norm: {LA.norm(wv.word_vec(text))}')
 for i in range(1, len(text)):
     word_1 = text[:i].lower()
     word_2 = text[i:].lower()
     norm1 = LA.norm(custom_vec(word_1))
     norm2 = LA.norm(custom_vec(word_2))
-    # norm1 = LA.norm(wv.word_vec(word_1))
-    # norm2 = LA.norm(wv.word_vec(word_2))
-    prob1 = histogram_val(probability_histogram, bins, norm1)
-    prob2 = histogram_val(probability_histogram, bins, norm2)
-    print(f'norm {word_1} {norm1}, norm2 {word_2} {norm2}, sum {(norm1 + norm2) / 2}, squared {(sqrt(norm1*norm1 + norm2*norm2) / 2)}, prob1 {prob1} prob2 {prob2}, prob {prob1 * prob2}')
+    prob1 = histogram_val(density_histogram, bins, norm1)
+    prob2 = histogram_val(density_histogram, bins, norm2)
+    print(f'norm {word_1} {norm1}, norm2 {word_2} {norm2}, prob1 {prob1} prob2 {prob2}, prob {prob1 * prob2}')
 
 print(f'1 {LA.norm(wv.vectors_vocab[wv.vocab["congratulations"].index])}')
 print(f'1 {LA.norm(wv.get_vector("congratulations"))}')
