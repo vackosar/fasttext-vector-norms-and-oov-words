@@ -10,7 +10,7 @@ wv.init_sims()
 print(f'model: maxn: {wv.max_n}, minn {wv.min_n}, vocab size: {len(wv.vectors_vocab)}')
 
 
-#%% util methods
+#%% shared methods
 import re
 from typing import Callable
 
@@ -27,6 +27,17 @@ from numpy import linalg as LA
 from numpy.core.multiarray import ndarray
 from scipy.optimize import leastsq
 from scipy.stats import t
+
+
+def select_word_index(min_count: int, max_count: int, min_norm: float, max_norm: float) -> int:
+    vectors_vocab = wv.vectors_vocab
+    for i, v in enumerate(vectors_vocab):
+        word = wv.index2word[i]
+        # norms[i] = LA.norm(wv.word_vec(word))
+        norm = LA.norm(custom_vec(word))
+        tf = wv.vocab[word].count
+        if max_norm > norm > min_norm and max_count > tf > min_count:
+            return i
 
 
 def common_words_norms(get_vec: Callable):
@@ -95,7 +106,7 @@ def calc_norms(get_vec: Callable):
     return norms, tfs
 
 
-def common_word_norm_histogram() -> (ndarray, ndarray):
+def common_word_norm_probability_histogram() -> (ndarray, ndarray):
     common_norms, _ = common_words_norms(custom_vec)
     norms, _ = calc_norms(custom_vec)
     bins = np.linspace(0, 10, 300)
@@ -103,8 +114,8 @@ def common_word_norm_histogram() -> (ndarray, ndarray):
     common_histogram, _ = np.histogram(common_norms, bins)
     histogram = common_histogram / norm_histogram
     histogram[np.isnan(histogram)] = 0
-    histogram = histogram / histogram[np.isfinite(histogram)].sum()
-    return histogram, bins
+    probability = histogram / histogram[np.isfinite(histogram)].sum()
+    return probability, bins
 
 
 def histogram_position(bins, value) -> int:
@@ -129,7 +140,7 @@ def no_ngram_vector(word: str) -> ndarray:
         return np.zeros(wv.vectors_vocab[0].shape[0])
 
 
-#%% def plot_vec_norms():
+#%% def plot_custom_vec_norms():
 norms, tfs = calc_norms(custom_vec)
 
 seaborn.set(style='white', rc={'figure.figsize': (12, 8)})
@@ -301,29 +312,31 @@ ax.plot(X, gaussian(X))
 ax.plot(X, fitfunc(p[0], p[1], X))
 plt.show()
 
+#%% calc_and_store_custom_vec_histogram_density():
+probability_histogram, bins = common_word_norm_probability_histogram()
+# np.savetxt('data/hist-probability.txt', probability_histogram)
+X = pd.Series(bins).rolling(window=2).mean().iloc[1:].values
+pd.DataFrame({'probability': probability_histogram, 'x': X}).to_csv('data/hist-probability-norm.csv', index=False)
+# np.savetxt('data/hist-bins.txt', bins)
+
 
 #%% print_word_separation
-# density, bins = common_word_norm_histogram()
-# np.savetxt('data/hist-density.txt', density)
-# np.savetxt('data/hist-bins.txt', bins)
-density = np.loadtxt('data/hist-density.txt')
-bins = np.loadtxt('data/hist-bins.txt')
-X = pd.Series(bins).rolling(window=2).mean().iloc[1:].values
-pd.DataFrame({'density': density, 'X': X}).to_csv('data/hist-norm.csv', index=False)
-# X = [x for x in iter(bins)]
+pdf_df = pd.read_csv('data/hist-probability-norm.csv')
+probability_histogram = pdf_df['probability'].values
+X = pdf_df['x']
 
-bin_width = bins[-1] / (bins.shape[0] - 1)
+bin_width = X[1] - X[0]
 # fitfunc = lambda mu, sigma, x: bin_width * 1 / (np.sqrt(2 * np.pi * sigma ** 2)) * np.exp(- 1 / 2 * ((x - mu) / sigma) ** 2)
 #fitfunc = lambda mu, sigma, x: bin_width * norm.pdf(x, mu, sigma)
 fitfunc = lambda mu, sigma, df, x: bin_width * t.pdf(x, df, mu, sigma)
 errfunc = lambda p, x, y: fitfunc(p[0], p[1], p[2], x) - y
 
-mean = np.sum(density * X)
-sigma = np.sqrt(np.sum(density * (X - mean) ** 2))
+mean = np.sum(probability_histogram * X)
+sigma = np.sqrt(np.sum(probability_histogram * (X - mean) ** 2))
 starting_param = np.array([mean, sigma, 2])
 # starting_param = np.array([2.5, 0.5])
 print(f'starting p {starting_param}')
-p, success = leastsq(errfunc, starting_param, args=(X, density))
+p, success = leastsq(errfunc, starting_param, args=(X, probability_histogram))
 fitted = fitfunc(p[0], p[1], p[2], X)
 # fitted = fitfunc(mean, sigma, X)
 print(f'p {p}, succ {success}')
@@ -332,7 +345,7 @@ fig: Figure = plt.figure()
 # plt.title('FastText norm-tf')
 # plt.xlabel('tf (fasttext word count)')
 ax: Axes = fig.add_subplot(1, 1, 1) #axisbg="1.0")
-ax.bar(X, density, label='probability', color='grey', alpha=1, width=bin_width)
+ax.bar(X, probability_histogram, label='probability', color='grey', alpha=1, width=bin_width)
 # ax.plot(X, fitted, label='fitted', color='green', alpha=0.5, width=bin_width) #, linestyle='--')
 ax.plot(X, fitted, label='fitted', color='orange', alpha=1, linestyle='--')
 ax.grid(True, which='both')
@@ -349,8 +362,8 @@ for i in range(1, len(text)):
     norm2 = LA.norm(custom_vec(word_2))
     # norm1 = LA.norm(wv.word_vec(word_1))
     # norm2 = LA.norm(wv.word_vec(word_2))
-    prob1 = histogram_val(density, bins, norm1)
-    prob2 = histogram_val(density, bins, norm2)
+    prob1 = histogram_val(probability_histogram, bins, norm1)
+    prob2 = histogram_val(probability_histogram, bins, norm2)
     print(f'norm {word_1} {norm1}, norm2 {word_2} {norm2}, sum {(norm1 + norm2) / 2}, squared {(sqrt(norm1*norm1 + norm2*norm2) / 2)}, prob1 {prob1} prob2 {prob2}, prob {prob1 * prob2}')
 
 print(f'1 {LA.norm(wv.vectors_vocab[wv.vocab["congratulations"].index])}')
