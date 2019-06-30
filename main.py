@@ -44,8 +44,13 @@ def select_word_index(min_count: int, max_count: int, min_norm: float, max_norm:
             return i
 
 
-def common_words_norms(get_vec: Callable):
+def read_mit_10k_words():
     words: ndarray = pd.read_csv('data/input/mit-10k-words.csv', header=None, names=['word'])['word'].values
+    return words
+
+
+def common_words_norms(get_vec: Callable):
+    words = read_mit_10k_words()
     norms = []
     tfs = []
     for i, word in enumerate(words):
@@ -113,7 +118,7 @@ def calc_norms(get_vec: Callable):
 def common_word_norm_density_histogram() -> (ndarray, ndarray):
     common_norms, _ = common_words_norms(custom_vec)
     norms, _ = calc_norms(custom_vec)
-    bins = np.linspace(0, 10, 300)
+    bins = np.linspace(0, 13, 300)
     norm_histogram, _ = np.histogram(norms, bins)
     norm_histogram[0] = 1
     common_histogram, _ = np.histogram(common_norms, bins)
@@ -331,7 +336,7 @@ run_plot_density_histogram()
 
 
 #%% print_word_separation
-def word_split_probability(text: str):
+def word_split_probability(text: str, density_histogram, bins):
     bin_width = bins[1] - bins[0]
     text = text.lower()
     df = pd.DataFrame(index=range(1, len(text)), columns=['word1', 'word2', 'norm1', 'norm2', 'prob1', 'prob2', 'prob'])
@@ -343,17 +348,58 @@ def word_split_probability(text: str):
         df.loc[i, 'norm1'] = LA.norm(custom_vec(word1))
         df.loc[i, 'norm2'] = LA.norm(custom_vec(word2))
 
-    df['prob1'] = density_histogram[np.digitize(df['norm1'].values, bins)] * bin_width
-    df['prob2'] = density_histogram[np.digitize(df['norm2'].values, bins)] * bin_width
-    df['prob'] = df['prob1'] * df['prob2']
-    print(df)
+    try:
+        df['prob1'] = density_histogram[np.digitize(df['norm1'].values, bins)] * bin_width
+        df['prob2'] = density_histogram[np.digitize(df['norm2'].values, bins)] * bin_width
+        df['prob'] = df['prob1'].values * df['prob2'].values
+
+    except IndexError as e:
+        raise ValueError(f'Failed to find in histogram on of {df[["word1", "word2", "norm1", "norm2"]]}') from e
+
+    return df
 
 
-pdf_df = pd.read_csv('data/ng-norm-density-hist.csv')
-density_histogram = pdf_df['density'].values
-ng_norms = pdf_df['ng_norm']
+density_histogram = pd.read_csv('data/ng-norm-density-hist.csv')['density'].values
 bins = np.loadtxt('data/hist-bins.txt')
 
-text = 'fictionaluniverse'
-word_split_probability(text)
+text = 'billionairemad'
+splits = word_split_probability(text, density_histogram, bins)
+with pd.option_context('display.max_rows', None, 'display.max_columns', None):  # more options can be specified also
+    print(splits)
 
+max_idx = np.argmax(splits['prob'].values)
+print(f'max idx {max_idx}, {list(splits.loc[max_idx + 1, ["word1", "word2"]].iteritems())}')
+
+
+#%% split common
+bins = np.loadtxt('data/hist-bins.txt')
+density_histogram = pd.read_csv('data/ng-norm-density-hist.csv')['density'].values
+
+words = read_mit_10k_words()
+np.random.seed(42)
+words1 = words[np.random.randint(0, 9900, size=3000)]
+words2 = words[np.random.randint(0, 9900, size=3000)]
+
+match_count = 0
+total_count = 0
+for i in range(words1.shape[0]):
+    word1 = words1[i]
+    word2 = words2[i]
+    # print(word1)
+    if word1 in wv.vocab and word2 in wv.vocab:
+        total_count += 1
+        splits = word_split_probability(word1 + word2, density_histogram, bins)
+        # print(splits)
+        max_idx = splits['prob'].idxmax()
+        # print(max_idx)
+        best_word1 = splits.loc[max_idx, 'word1']
+        # print(best_word1)
+        if len(best_word1) == len(word1):
+            match_count += 1
+
+        else:
+            pass
+            # best_word2 = splits.loc[max_idx, 'word2']
+            # print(f'invalid split {best_word1} {best_word2}')
+
+print(f'match_count {match_count}, total_count {total_count}, accuracy {100 * match_count / total_count}')
