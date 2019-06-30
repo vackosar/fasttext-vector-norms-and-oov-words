@@ -328,7 +328,7 @@ def run_plot_density_histogram():
     ax.plot(ng_norms, fitted_density, label=fit_label, color='orange', alpha=1, linestyle='--')
     ax.grid(True, which='both')
     ax.legend()
-    fig.savefig('data/hist-norm.png')
+    fig.savefig('data/ng_norm-common-density.png')
     fig.show()
 
 

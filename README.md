@@ -28,12 +28,19 @@ As mentioned above each FastText vocab word has its vector representation regard
 
 # NG_Norm (N-Grams Times Count Norm)
 
-As mentioned above FastText uses average of word vectors used. However for detection of noise-words number of ngrams seems to useful. For that purpose NG_Norm is defined <b>ng_norm(word)= || &Sigma;<sub>g &in; ngrams(word)</sub>v<sub>g</sub> ||</b>
-
-
-
+As mentioned above FastText uses average of word vectors used. However for detection of noise-words number of ngrams seems to useful. For that purpose NG_Norm is defined <b>ng_norm(word)= || &Sigma;<sub>g &in; ngrams(word)</sub>v<sub>g</sub> ||</b>. Using this norm common words are clustered in narrower band on ng_norm axis.
 
 ![ngram_norm-tf](https://raw.githubusercontent.com/vackosar/fasttext-vector-norms-and-oov-words/master/results/ng_norm-tf.png)
+
+Explicitly aggregated distribution on ng_norm axis is plotted in histogram below.
+![ngram_norm-hist](https://raw.githubusercontent.com/vackosar/fasttext-vector-norms-and-oov-words/master/results/ng_norm-hist.png)
+
+Probability distribution of given FastText vocabulary word being common word is plotted below. The distribution was well approximated by t-distribution.
+![ngram_norm-common-density](https://raw.githubusercontent.com/vackosar/fasttext-vector-norms-and-oov-words/master/results/ng_norm-common-density.png)
+
+Ability to detect noisy-words was evaluated on simple task of splitting two concatenated words back apart.
+
+ 
 
 # Conclusion
 
