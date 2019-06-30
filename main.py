@@ -110,7 +110,7 @@ def calc_norms(get_vec: Callable):
     return norms, tfs
 
 
-def common_word_norm_probability_histogram() -> (ndarray, ndarray):
+def common_word_norm_density_histogram() -> (ndarray, ndarray):
     common_norms, _ = common_words_norms(custom_vec)
     norms, _ = calc_norms(custom_vec)
     bins = np.linspace(0, 10, 300)
@@ -118,12 +118,13 @@ def common_word_norm_probability_histogram() -> (ndarray, ndarray):
     norm_histogram[0] = 1
     common_histogram, _ = np.histogram(common_norms, bins)
     histogram = common_histogram / norm_histogram
-    # histogram[np.isnan(histogram)] = 0
-    if len(np.argwhere(np.isnan(histogram))) > 0:
-        raise ValueError('unexpected nan')
+    common_non_zero_on_nan = np.argwhere(common_histogram[np.isnan(histogram)] != 0)
+    if len(np.argwhere(common_non_zero_on_nan)) > 0:
+        raise ValueError(f'unexpected nan at {common_non_zero_on_nan}, common: {common_histogram[common_non_zero_on_nan]}')
 
-    probability = histogram / histogram[np.isfinite(histogram)].sum()
-    return probability, bins
+    histogram[np.isnan(histogram)] = 0
+    density_histogram = histogram / histogram[np.isfinite(histogram)].sum() / (bins[1] - bins[0])
+    return density_histogram, bins
 
 
 def histogram_position(bins, value) -> int:
@@ -286,7 +287,7 @@ fig.show()
 
 
 #%% calc_and_store_ng_norm_density_histogram():
-density_histogram, bins = common_word_norm_probability_histogram()
+density_histogram, bins = common_word_norm_density_histogram()
 # np.savetxt('data/hist-probability.txt', probability_histogram)
 ng_norms = pd.Series(bins).rolling(window=2).mean().iloc[1:].values
 pd.DataFrame({'density': density_histogram, 'ng_norm': ng_norms}).to_csv('data/ng-norm-density-hist.csv', index=False)
@@ -300,16 +301,16 @@ def run_plot_density_histogram():
     ng_norms = pdf_df['ng_norm']
 
     bin_width = ng_norms[1] - ng_norms[0]
-    fitfunc = lambda mu, sigma, df, x: bin_width * t.pdf(x, df, mu, sigma)
+    fitfunc = lambda mu, sigma, df, x: t.pdf(x, df, mu, sigma)
     errfunc = lambda p, x, y: fitfunc(p[0], p[1], p[2], x) - y
 
     mean = np.sum(density_histogram * bin_width * ng_norms)
     sigma = np.sqrt(np.sum(density_histogram * bin_width * (ng_norms - mean) ** 2))
     starting_param = np.array([mean, sigma, 3])
     print(f'starting p {starting_param}')
-    p, success = leastsq(errfunc, starting_param, args=(ng_norms, density_histogram))
-    fitted_density = fitfunc(p[0], p[1], p[2], ng_norms)
+    p, success = leastsq(errfunc, starting_param, args=(ng_norms, density_histogram), full_output=False)
     print(f'fitted_density params: {p}, success value: {success}')
+    fitted_density = fitfunc(p[0], p[1], p[2], ng_norms)
 
     fig: Figure = plt.figure()
     plt.title(mit_10k_common_label + 'FastText NG-Norm Density Histogram')
@@ -331,8 +332,8 @@ run_plot_density_histogram()
 
 #%% print_word_separation
 def word_split_probability(text: str):
+    bin_width = bins[1] - bins[0]
     text = text.lower()
-    print(f'orig norm: {LA.norm(wv.word_vec(text))}')
     df = pd.DataFrame(index=range(1, len(text)), columns=['word1', 'word2', 'norm1', 'norm2', 'prob1', 'prob2', 'prob'])
     for i in df.index:
         word1 = text[:i]
@@ -342,8 +343,8 @@ def word_split_probability(text: str):
         df.loc[i, 'norm1'] = LA.norm(custom_vec(word1))
         df.loc[i, 'norm2'] = LA.norm(custom_vec(word2))
 
-    df['prob1'] = density_histogram[np.digitize(df['norm1'].values, bins)]
-    df['prob2'] = density_histogram[np.digitize(df['norm2'].values, bins)]
+    df['prob1'] = density_histogram[np.digitize(df['norm1'].values, bins)] * bin_width
+    df['prob2'] = density_histogram[np.digitize(df['norm2'].values, bins)] * bin_width
     df['prob'] = df['prob1'] * df['prob2']
     print(df)
 
