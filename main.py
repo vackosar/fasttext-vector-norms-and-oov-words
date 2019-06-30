@@ -317,6 +317,7 @@ def run_plot_density_histogram():
     print(f'fitted_density params: {p}, success value: {success}')
     fitted_density = fitfunc(p[0], p[1], p[2], ng_norms)
 
+    seaborn.set(style='white', rc={'figure.figsize': (12, 8)})
     fig: Figure = plt.figure()
     plt.title(mit_10k_common_label + 'FastText NG-Norm Density Histogram')
     plt.ylabel('Probability Density')
@@ -328,6 +329,7 @@ def run_plot_density_histogram():
     ax.plot(ng_norms, fitted_density, label=fit_label, color='orange', alpha=1, linestyle='--')
     ax.grid(True, which='both')
     ax.legend()
+    fig.tight_layout()
     fig.savefig('data/ng_norm-common-density.png')
     fig.show()
 
