@@ -184,7 +184,7 @@ ax.grid(True, which='both')
 plt.ylim(0, 30)
 ax.legend()
 fig.tight_layout()
-fig.savefig('data/figure.png')
+fig.savefig('data/ng_norm-tf.png')
 fig.show()
 
 
@@ -222,7 +222,7 @@ ax.grid(True, which='both')
 # plt.ylim(0, 40)
 ax.legend()
 fig.tight_layout()
-fig.savefig('data/standard-figure.png')
+fig.savefig('data/standard_norm-tf.png')
 fig.show()
 
 
@@ -230,7 +230,7 @@ fig.show()
 norms, tfs = calc_norms(no_ngram_vector)
 seaborn.set(style='white', rc={'figure.figsize': (12, 8)})
 fig: Figure = plt.figure()
-plt.title('FastText Word Whole Word Token - TF')
+plt.title('FastText Word Whole Word Token (no ngram) - TF')
 plt.xlabel(tf_label)
 plt.xscale('log')
 plt.ylabel('norm of the whole words without sub-ngrams')
@@ -260,7 +260,7 @@ ax.grid(True, which='both')
 plt.ylim(0, 40)
 ax.legend()
 fig.tight_layout()
-fig.savefig('data/no-ngram-figure.png')
+fig.savefig('data/no_ngram_norm-tf.png')
 fig.show()
 
 
@@ -282,7 +282,7 @@ ax.hist(common_norms, bins=bins, alpha=0.5, label=mit_10k_common_label, density=
 ax.grid(True, which='both')
 ax.legend()
 fig.tight_layout()
-fig.savefig('data/ng_norm_hist.png')
+fig.savefig('data/ng_norm-hist.png')
 fig.show()
 
 
