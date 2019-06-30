@@ -36,6 +36,7 @@ Explicitly aggregated distribution on ng_norm axis is plotted in histogram below
 ![ngram_norm-hist](https://raw.githubusercontent.com/vackosar/fasttext-vector-norms-and-oov-words/master/results/ng_norm-hist.png)
 
 Probability distribution of given FastText vocabulary word being common word is plotted below. The distribution was well approximated by t-distribution.
+
 ![ngram_norm-common-density](https://raw.githubusercontent.com/vackosar/fasttext-vector-norms-and-oov-words/master/results/ng_norm-common-density.png)
 
 Ability to detect noisy-words was evaluated on simple task of splitting two concatenated words back apart.
