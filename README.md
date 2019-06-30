@@ -7,7 +7,7 @@ Word2vec vector norms have been show in [(Schakel & Wilson, 2015)](http://arxiv.
 
 # Introduction
 
-FastText embeds words by adding word's n-grams to the words embedding and then normalizes by total token count i.e. <b>fastText(word)<sub></sub> = (v<sub>word</sub> + &Sigma;<sub>g &in; ngrams(word)</sub>v<sub>g</sub>) / (1 + |ngrams(word)|)</b>. However if the word if not present in the dictionary (OOV) only n-grams are used i.e. <b>fastText(word) = (&Sigma;<sub>g &in; ngrams(word)</sub>v<sub>g</sub>) / |ngrams(word)|</b>. For purpose of studying OOV words the asymmetry between vocabulary and out of vocabulary words is removed by only utilizing word's n-grams regardless if it is OOV or not.
+FastText embeds words by adding word's n-grams to the words embedding and then normalizes by total token count i.e. <b>fastText(word)<sub></sub> = (v<sub>word</sub> + &Sigma;<sub>g &in; ngrams(word)</sub>v<sub>g</sub>) / (1 + |ngrams(word)|)</b>. However if the word if not present in the dictionary (OOV) only n-grams are used i.e. <b>(&Sigma;<sub>g &in; ngrams(word)</sub>v<sub>g</sub>) / |ngrams(word)|</b>. For purpose of studying OOV words the asymmetry between vocabulary and out of vocabulary words is removed by only utilizing word's n-grams regardless if it is OOV or not.
 
 In order to study contrast between common english words e.g. "apple" and noise-words (usually some parsing artifacts or unusual tokens with very specific meaning) e.g. "wales-2708" or "G705" [MIT 10K Common words dataset is used](https://www.mit.edu/~ecprice/wordlist.10000).
 
@@ -30,14 +30,14 @@ As mentioned above each FastText vocab word has its vector representation regard
 
 As mentioned above FastText uses average of word vectors used. However for detection of noise-words number of ngrams seems to useful. For that purpose NG_Norm is defined <b>ng_norm(word)= || &Sigma;<sub>g &in; ngrams(word)</sub>v<sub>g</sub> ||</b>. Using this norm common words are clustered in narrower band on ng_norm axis.
 
-![ngram_norm-tf](https://raw.githubusercontent.com/vackosar/fasttext-vector-norms-and-oov-words/master/results/ng_norm-tf.png)
+![ng_norm-tf](https://raw.githubusercontent.com/vackosar/fasttext-vector-norms-and-oov-words/master/results/ng_norm-tf.png)
 
 Explicitly aggregated distribution on ng_norm axis is plotted in histogram below.
-![ngram_norm-hist](https://raw.githubusercontent.com/vackosar/fasttext-vector-norms-and-oov-words/master/results/ng_norm-hist.png)
+![ng_norm-hist](https://raw.githubusercontent.com/vackosar/fasttext-vector-norms-and-oov-words/master/results/ng_norm-hist.png)
 
 Probability distribution of given FastText vocabulary word being common word is plotted below. The distribution was well approximated by t-distribution.
 
-![ngram_norm-common-density](https://raw.githubusercontent.com/vackosar/fasttext-vector-norms-and-oov-words/master/results/ng_norm-common-density.png)
+![ng_norm-common-density](https://raw.githubusercontent.com/vackosar/fasttext-vector-norms-and-oov-words/master/results/ng_norm-common-density.png)
 
 Ability to detect noisy-words was evaluated on simple task of splitting two concatenated words back apart. For example let's split back concatenation 'inflationlithium':
 
@@ -67,10 +67,17 @@ Above approach yielded around 48% accuracy on 3000 random two-word samples from 
 
 # Conclusion
 
+FastText vector norms and their term-frequency were visualized and investigated in this post.
 
+Standard Norm Term Frequency plot revealed potentially interesting clustering of common vectors in three to four main areas.
+
+No-N-Gram Norm has very similar Norm-TF distribution as Word2Vec shown in [(Schakel & Wilson, 2015)](http://arxiv.org/abs/1508.02297).
+
+NG_Norm shows that n-gram count could be potentially useful feature and that simple averaging over vectors may not be optimal. Perhaps some approach akin to [(Zhelezniak et al., 2019)](https://arxiv.org/abs/1904.13264) could be used.
 
 
 # References
 
 - [Piotr  Bojanowski,   Edouard  Grave,   Armand  Joulin,and  Tomas  Mikolov.  2016.    Enriching  word  vec-tors  with  subword  information. arXiv preprint arXiv:1607.04606.](https://arxiv.org/abs/1607.04606)
 - [Adriaan M. J. Schakel and Benjamin J Wilson.  Measuring Word Significance using DistributedRepresentations of Words. aug 2015. http://arxiv.org/abs/1508.02297](http://arxiv.org/abs/1508.02297).
+- [Vitalii  Zhelezniak,  Aleksandar  Savkov,  April  Shen,Francesco  Moramarco,   Jack  Flann,   and  Nils  Y.Hammerla. 2019.   Don’t settle for average,  go for the max:  Fuzzy sets and max-pooled word vectors. In International Conference on Learning Representations.](https://arxiv.org/abs/1904.13264)
