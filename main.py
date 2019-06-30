@@ -1,3 +1,4 @@
+import io
 from math import sqrt
 from typing import Callable
 
@@ -364,10 +365,13 @@ def word_split_probability(text: str, density_histogram, bins):
 density_histogram = pd.read_csv('data/ng-norm-density-hist.csv')['density'].values
 bins = np.loadtxt('data/hist-bins.txt')
 
-text = 'billionairemad'
+text = 'inflationlithium'
 splits = word_split_probability(text, density_histogram, bins)
 with pd.option_context('display.max_rows', None, 'display.max_columns', None):  # more options can be specified also
     print(splits)
+
+with open('data/ng_norm-split-sample.html', 'w') as f:
+    splits.to_html(f, index=False)
 
 max_idx = np.argmax(splits['prob'].values)
 print(f'max idx {max_idx}, {list(splits.loc[max_idx + 1, ["word1", "word2"]].iteritems())}')
