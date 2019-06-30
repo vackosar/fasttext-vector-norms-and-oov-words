@@ -7,9 +7,18 @@ Word2vec vector norms have been show in [(Schakel & Wilson, 2015)](http://arxiv.
 
 # Introduction
 
-FastText embeds words by adding word's n-grams to the words embedding and then normalizes by total token count i.e. <b>fastText(word)<sub></sub> = (v<sub>word</sub> + &Sigma;<sub>g &in; ngrams(word)</sub>v<sub>g</sub>) / (1 + |ngrams(word)|)</b>. However if the word if not present in the dictionary (OOV) only n-grams are used i.e. <b>fastText(word) = (&Sigma;<sub>g &in; ngrams(word)</sub>v<sub>g</sub>) / |ngrams(word)|</b>.
+FastText embeds words by adding word's n-grams to the words embedding and then normalizes by total token count i.e. <b>fastText(word)<sub></sub> = (v<sub>word</sub> + &Sigma;<sub>g &in; ngrams(word)</sub>v<sub>g</sub>) / (1 + |ngrams(word)|)</b>. However if the word if not present in the dictionary (OOV) only n-grams are used i.e. <b>fastText(word) = (&Sigma;<sub>g &in; ngrams(word)</sub>v<sub>g</sub>) / |ngrams(word)|</b>. For purpose of studying OOV words the asymmetry between vocabulary and out of vocabulary words is removed by only utilizing word's n-grams regardless if it is OOV or not.
 
-# Vector Norm
+In order to study contrast between common english words e.g. "apple" and noise words (usually some parsing artifacts or unusual tokens with very specific meaning) e.g. "wales-2708" or "G705" [MIT 10K Common words dataset is used](https://www.mit.edu/~ecprice/wordlist.10000).
+
+Entire code for this post in available in [this repository in file "main.py"](https://github.com/vackosar/fasttext-vector-norms-and-oov-words/blob/master/main.py). FastText model used is [5-gram English 2M "cc.en.300.bin"](https://dl.fbaipublicfiles.com/fasttext/vectors-crawl/cc.en.300.bin.gz).
+
+# Standard Vector Norm
+
+Standard vector norm as defined in Gensim implementation is used in this section.
+
+![]()
+
 
 # Conclusion
 
