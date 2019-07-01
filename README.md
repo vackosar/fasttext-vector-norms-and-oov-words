@@ -71,7 +71,7 @@ FastText vector norms and their term-frequency were visualized and investigated 
 
 Standard Norm Term-Frequency plot revealed potentially interesting clustering of common vectors in three to four main areas.
 
-No-N-Gram Norm has very similar Norm-TF distribution as Word2Vec shown in [(Schakel & Wilson, 2015)](http://arxiv.org/abs/1508.02297). The word significance correlation does seem to hold even for FastText embeddings.
+No-N-Gram Norm has very similar Norm-TF distribution as Word2Vec shown in [(Schakel & Wilson, 2015)](http://arxiv.org/abs/1508.02297). The word significance correlation does seem to hold even for FastText embeddings in terms of No-N-Gram Norm.
 
 NG_Norm shows that n-gram count could be potentially useful feature and that simple averaging over n-gram vectors may not be optimal. Perhaps some approach akin to [(Zhelezniak et al., 2019)](https://arxiv.org/abs/1904.13264) could be used.
 
