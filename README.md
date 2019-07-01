@@ -2,12 +2,12 @@
 
 # Abstract
 
-Word embeddings, trained on large unlabeled corpora are useful for many natural language processing tasks. FastText model introduced in [(Bojanowski et al., 2016)](https://arxiv.org/abs/1607.04606) in contrast to Word2vec model accounts for sub-word information by embedding also sub-word n-grams. FastText word representation is whole word vector plus sum of n-grams contained in it.
-Word2vec vector norms have been show in [(Schakel & Wilson, 2015)](http://arxiv.org/abs/1508.02297) to be correlated to word significance. This blog post visualize vector norms of FastText embedding and evaluates use of FastText word vector norm multiplied with number of word n-grams for detecting non-english OOV words.
+Word embeddings, trained on large unlabeled corpora are useful for many natural language processing tasks. FastText [(Bojanowski et al., 2016)](https://arxiv.org/abs/1607.04606) in contrast to Word2vec model accounts for sub-word information by also embedding sub-word n-grams. FastText word representation is the word embedding vector plus sum of n-grams contained in it.
+Word2vec vector norms have been show [(Schakel & Wilson, 2015)](http://arxiv.org/abs/1508.02297) to be correlated to word significance. This blog post visualize vector norms of FastText embedding and evaluates use of FastText word vector norm multiplied with number of word n-grams for detecting non-english OOV words.
 
 # Introduction
 
-FastText embeds words by adding word's n-grams to the words embedding and then normalizes by total token count i.e. <b>fastText(word)<sub></sub> = (v<sub>word</sub> + &Sigma;<sub>g &in; ngrams(word)</sub>v<sub>g</sub>) / (1 + |ngrams(word)|)</b>. However if the word if not present in the dictionary (OOV) only n-grams are used i.e. <b>(&Sigma;<sub>g &in; ngrams(word)</sub>v<sub>g</sub>) / |ngrams(word)|</b>. For purpose of studying OOV words the asymmetry between vocabulary and out of vocabulary words is removed by only utilizing word's n-grams regardless if it is OOV or not.
+FastText embeds words by adding word's n-grams to the word embedding and then normalizes by total token count i.e. <b>fastText(word)<sub></sub> = (v<sub>word</sub> + &Sigma;<sub>g &in; ngrams(word)</sub>v<sub>g</sub>) / (1 + |ngrams(word)|)</b>. However if the word is not present in the dictionary (OOV) only n-grams are used i.e. <b>(&Sigma;<sub>g &in; ngrams(word)</sub>v<sub>g</sub>) / |ngrams(word)|</b>. For purpose of studying OOV words this asymmetry between vocabulary and out of vocabulary words is removed by only utilizing word's n-grams regardless if the word is OOV or not.
 
 In order to study contrast between common english words e.g. "apple" and noise-words (usually some parsing artifacts or unusual tokens with very specific meaning) e.g. "wales-2708" or "G705" [MIT 10K Common words dataset is used](https://www.mit.edu/~ecprice/wordlist.10000).
 
@@ -15,7 +15,7 @@ Entire code for this post in available in [this repository in file "main.py"](ht
 
 # Standard Vector Norm
 
-Standard vector norm as defined in Gensim implementation is used in this section. Common words are located mostly on the right term-frequency spectrum and clustered in three different areas in norm spectrum. On both axis common words are clustered approximatelly in 4 areas. In would be interesting to investigate what those clusters correspond to.
+Standard vector norm as defined in Gensim implementation is used in this section. Common words are located mostly on the right in the term-frequency spectrum and clustered in three different areas in the norm spectrum. On both axis common words are clustered approximatelly in 4 areas. In would be interesting to investigate what those clusters correspond to.
 
 ![standard_norm-tf](https://raw.githubusercontent.com/vackosar/fasttext-vector-norms-and-oov-words/master/results/standard_norm-tf.png)
 
@@ -35,11 +35,11 @@ As mentioned above FastText uses average of word vectors used. However for detec
 Explicitly aggregated distribution on ng_norm axis is plotted in histogram below.
 ![ng_norm-hist](https://raw.githubusercontent.com/vackosar/fasttext-vector-norms-and-oov-words/master/results/ng_norm-hist.png)
 
-Probability distribution of given FastText vocabulary word being common word is plotted below. The distribution was well approximated by t-distribution.
+Probability distribution of given FastText vocabulary word being common word is plotted below. The distribution is well approximated by t-distribution.
 
 ![ng_norm-common-density](https://raw.githubusercontent.com/vackosar/fasttext-vector-norms-and-oov-words/master/results/ng_norm-common-density.png)
 
-Ability to detect noisy-words was evaluated on simple task of splitting two concatenated words back apart. For example let's split back concatenation 'inflationlithium':
+Ability to detect noisy-words is evaluated on simple task of splitting two concatenated words back apart below. For example let's split back concatenation 'inflationlithium':
 
 <table border="1" class="dataframe">
   <thead><tr style="text-align: right;"> <th>word1</th> <th>word2</th> <th>norm1</th> <th>norm2</th> <th>prob1</th> <th>prob2</th> <th>prob</th> </tr> </thead>
@@ -62,18 +62,18 @@ Ability to detect noisy-words was evaluated on simple task of splitting two conc
   </tbody>
 </table>
  
-Above approach yielded around 48% accuracy on 3000 random two-word samples from MIT 10k common words. A more efficient method in this case would be to search vocabulary instead of calculating vector norms. More appropriate comparison though would be to some alternative e.g. using Edit Distance performed also on OOV words and words with typos.
+Above approach yielded around 48% accuracy on 3000 random two-word samples from MIT 10k common words. A more efficient method in this specific case would be to search vocabulary instead of calculating vector norms. More appropriate comparison however would be for more general task involving OOV words e.g. using Edit Distance performed also on OOV words and words with typos.
  
 
 # Conclusion
 
 FastText vector norms and their term-frequency were visualized and investigated in this post.
 
-Standard Norm Term Frequency plot revealed potentially interesting clustering of common vectors in three to four main areas.
+Standard Norm Term-Frequency plot revealed potentially interesting clustering of common vectors in three to four main areas.
 
 No-N-Gram Norm has very similar Norm-TF distribution as Word2Vec shown in [(Schakel & Wilson, 2015)](http://arxiv.org/abs/1508.02297).
 
-NG_Norm shows that n-gram count could be potentially useful feature and that simple averaging over vectors may not be optimal. Perhaps some approach akin to [(Zhelezniak et al., 2019)](https://arxiv.org/abs/1904.13264) could be used.
+NG_Norm shows that n-gram count could be potentially useful feature and that simple averaging over n-gram vectors may not be optimal. Perhaps some approach akin to [(Zhelezniak et al., 2019)](https://arxiv.org/abs/1904.13264) could be used.
 
 
 # References
