@@ -22,7 +22,7 @@ Standard vector norm as defined in Gensim implementation is used in this section
 
 # No N-Gram Norm
 
-As mentioned above each FastText vocab word has its vector representation regardless its size. Norms of those vectors are plotted in this section. The shape of the distribution seems to match closely the shape of the same plot for Word2Vec [(Schakel & Wilson, 2015)](http://arxiv.org/abs/1508.02297).
+As mentioned above each FastText vocab word has its vector representation regardless its size. Norms of those vectors are plotted in this section. The shape of the distribution seems to match closely the shape of the same plot for Word2Vec [(Schakel & Wilson, 2015)](http://arxiv.org/abs/1508.02297). The vector norm as measure of word significance seems to hold even for FastText in terms of this norm as can be seen from labeled samples in the scatter plot.
 ![no_ngram_norm-tf](https://raw.githubusercontent.com/vackosar/fasttext-vector-norms-and-oov-words/master/results/no_ngram_norm-tf.png)
 
 
@@ -71,7 +71,7 @@ FastText vector norms and their term-frequency were visualized and investigated 
 
 Standard Norm Term-Frequency plot revealed potentially interesting clustering of common vectors in three to four main areas.
 
-No-N-Gram Norm has very similar Norm-TF distribution as Word2Vec shown in [(Schakel & Wilson, 2015)](http://arxiv.org/abs/1508.02297).
+No-N-Gram Norm has very similar Norm-TF distribution as Word2Vec shown in [(Schakel & Wilson, 2015)](http://arxiv.org/abs/1508.02297). The word significance correlation does seem to hold even for FastText embeddings.
 
 NG_Norm shows that n-gram count could be potentially useful feature and that simple averaging over n-gram vectors may not be optimal. Perhaps some approach akin to [(Zhelezniak et al., 2019)](https://arxiv.org/abs/1904.13264) could be used.
 
