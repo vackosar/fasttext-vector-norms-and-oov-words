@@ -34,15 +34,15 @@ mit_10k_common_label = 'MIT 10k Common Words'
 fasttext_model_vocab_label = 'Fasttext Model 2M Vocabulary Words'
 
 
-def select_word_index(min_count: int, max_count: int, min_norm: float, max_norm: float) -> int:
-    vectors_vocab = wv.vectors_vocab
-    for i, v in enumerate(vectors_vocab):
-        word = wv.index2word[i]
-        # norms[i] = LA.norm(wv.word_vec(word))
-        norm = LA.norm(custom_vec(word))
-        tf = wv.vocab[word].count
-        if max_norm > norm > min_norm and max_count > tf > min_count:
-            return i
+def select_word_index(norms: ndarray, tfs: ndarray, min_count: int, max_count: int, min_norm: float, max_norm: float) -> int:
+    mask = (max_norm > norms) & (norms > min_norm) & (max_count > tfs) & (tfs > min_count)
+    idxs = np.argwhere(mask)[0]
+    if len(idxs) == 0:
+        raise ValueError(f'Not found {min_count}-{max_count}, {min_norm}-{max_norm}.')
+
+    else:
+        print(f'idx found: {idxs[0]}')
+        return idxs[0]
 
 
 def read_mit_10k_words():
@@ -155,10 +155,19 @@ def no_ngram_vector(word: str) -> ndarray:
         return np.zeros(wv.vectors_vocab[0].shape[0])
 
 
-
-
 #%% def plot_standard_vec_norms():
 norms, tfs = calc_norms(standard_vec)
+sorted_idxs = matutils.argsort(norms, reverse=True)
+
+rnd_word_idx = [
+    # sorted_idxs[400000], sorted_idxs[800000], sorted_idxs[1200000], sorted_idxs[1600000], sorted_idxs[1800000]
+    select_word_index(norms, tfs, 70_000, 100_000, 2.4, 2.71),
+    select_word_index(norms, tfs, 55_000, 70_000, 0.53, 0.6),
+    select_word_index(norms, tfs, 4600_000, 7000_000, 0.44, 0.47),
+    select_word_index(norms, tfs, 4600_000, 7000_000, 1.26, 1.3),
+    select_word_index(norms, tfs, 4600_000, 7000_000, 2.4, 2.71)
+]
+
 seaborn.set(style='white', rc={'figure.figsize': (12, 8)})
 fig: Figure = plt.figure()
 plt.title('FastText Norm - TF')
@@ -171,16 +180,6 @@ ax.scatter(tfs, norms, alpha=0.6, edgecolors='none', s=5, label=fasttext_model_v
 common_words_norm, common_words_tfs = common_words_norms(standard_vec)
 ax.scatter(common_words_tfs, common_words_norm, alpha=0.8, edgecolors='none', s=5, label=mit_10k_common_label)
 
-sorted_idxs = matutils.argsort(norms, reverse=True)
-
-rnd_word_idx = [
-    sorted_idxs[400000], sorted_idxs[800000], sorted_idxs[1200000], sorted_idxs[1600000], sorted_idxs[1800000]
-    # select_word_index(70_000, 100_000, 2.4, 2.71),
-    # select_word_index(55_000, 70_000, 0.53, 0.6),
-    # select_word_index(4600_000, 7000_000, 0.44, 0.47),
-    # select_word_index(4600_000, 7000_000, 1.26, 1.3),
-    # select_word_index(4600_000, 7000_000, 2.4, 2.71)
-]
 for i in rnd_word_idx:
     word = wv.index2word[i]
     tf = wv.vocab[word].count
@@ -209,16 +208,16 @@ ax.scatter(tfs, norms, alpha=0.6, edgecolors='none', s=5, label=fasttext_model_v
 common_words_norm, common_words_tfs = common_words_norms(no_ngram_vector)
 ax.scatter(common_words_tfs, common_words_norm, alpha=0.8, edgecolors='none', s=5, label=mit_10k_common_label)
 
-sorted_idxs = matutils.argsort(norms, reverse=True)
-
+# sorted_idxs = matutils.argsort(norms, reverse=True)
 rnd_word_idx = [
     sorted_idxs[400000], sorted_idxs[800000], sorted_idxs[1200000], sorted_idxs[1600000], sorted_idxs[1800000]
-    # select_word_index(70_000, 100_000, 2.4, 2.71),
     # select_word_index(55_000, 70_000, 0.53, 0.6),
+    # select_word_index(70_000, 100_000, 2.4, 2.71),
     # select_word_index(4600_000, 7000_000, 0.44, 0.47),
     # select_word_index(4600_000, 7000_000, 1.26, 1.3),
     # select_word_index(4600_000, 7000_000, 2.4, 2.71)
 ]
+
 for i in rnd_word_idx:
     word = wv.index2word[i]
     tf = wv.vocab[word].count
