@@ -155,43 +155,6 @@ def no_ngram_vector(word: str) -> ndarray:
         return np.zeros(wv.vectors_vocab[0].shape[0])
 
 
-#%% def plot_custom_vec_norms():
-norms, tfs = calc_norms(custom_vec)
-
-seaborn.set(style='white', rc={'figure.figsize': (12, 8)})
-fig: Figure = plt.figure()
-plt.title('FastText NG_Norm - TF')
-plt.xlabel(tf_label)
-plt.xscale('log')
-plt.ylabel(ng_norm_label)
-ax: Axes = fig.add_subplot(1, 1, 1) #axisbg="1.0")
-ax.scatter(tfs, norms, alpha=0.6, edgecolors='none', s=5, label=fasttext_model_vocab_label)
-
-common_words_norm, common_words_tfs = common_words_norms(custom_vec)
-ax.scatter(common_words_tfs, common_words_norm, alpha=0.8, edgecolors='none', s=5, label=mit_10k_common_label)
-
-sorted_idxs = matutils.argsort(norms, reverse=True)
-
-rnd_word_idx = [
-    sorted_idxs[400000], sorted_idxs[800000], sorted_idxs[1200000], sorted_idxs[1600000], sorted_idxs[1800000]
-    # select_word_index(70_000, 100_000, 2.4, 2.71),
-    # select_word_index(55_000, 70_000, 0.53, 0.6),
-    # select_word_index(4600_000, 7000_000, 0.44, 0.47),
-    # select_word_index(4600_000, 7000_000, 1.26, 1.3),
-    # select_word_index(4600_000, 7000_000, 2.4, 2.71)
-]
-for i in rnd_word_idx:
-    word = wv.index2word[i]
-    tf = wv.vocab[word].count
-    norm = norms[i]
-    ax.scatter([tf], [norm], alpha=1, edgecolors='black', s=30, label=word)
-
-ax.grid(True, which='both')
-plt.ylim(0, 30)
-ax.legend()
-fig.tight_layout()
-fig.savefig('data/ng_norm-tf.png')
-fig.show()
 
 
 #%% def plot_standard_vec_norms():
@@ -269,6 +232,44 @@ fig.tight_layout()
 fig.savefig('data/no_ngram_norm-tf.png')
 fig.show()
 
+
+#%% def plot_custom_vec_norms():
+norms, tfs = calc_norms(custom_vec)
+
+seaborn.set(style='white', rc={'figure.figsize': (12, 8)})
+fig: Figure = plt.figure()
+plt.title('FastText NG_Norm - TF')
+plt.xlabel(tf_label)
+plt.xscale('log')
+plt.ylabel(ng_norm_label)
+ax: Axes = fig.add_subplot(1, 1, 1) #axisbg="1.0")
+ax.scatter(tfs, norms, alpha=0.6, edgecolors='none', s=5, label=fasttext_model_vocab_label)
+
+common_words_norm, common_words_tfs = common_words_norms(custom_vec)
+ax.scatter(common_words_tfs, common_words_norm, alpha=0.8, edgecolors='none', s=5, label=mit_10k_common_label)
+
+sorted_idxs = matutils.argsort(norms, reverse=True)
+
+rnd_word_idx = [
+    sorted_idxs[400000], sorted_idxs[800000], sorted_idxs[1200000], sorted_idxs[1600000], sorted_idxs[1800000]
+    # select_word_index(70_000, 100_000, 2.4, 2.71),
+    # select_word_index(55_000, 70_000, 0.53, 0.6),
+    # select_word_index(4600_000, 7000_000, 0.44, 0.47),
+    # select_word_index(4600_000, 7000_000, 1.26, 1.3),
+    # select_word_index(4600_000, 7000_000, 2.4, 2.71)
+]
+for i in rnd_word_idx:
+    word = wv.index2word[i]
+    tf = wv.vocab[word].count
+    norm = norms[i]
+    ax.scatter([tf], [norm], alpha=1, edgecolors='black', s=30, label=word)
+
+ax.grid(True, which='both')
+plt.ylim(0, 30)
+ax.legend()
+fig.tight_layout()
+fig.savefig('data/ng_norm-tf.png')
+fig.show()
 
 # %% def plot_histogram_of_common_and_vocab_ng_norms():
 norms, _ = calc_norms(custom_vec)
