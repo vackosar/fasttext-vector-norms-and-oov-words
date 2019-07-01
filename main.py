@@ -36,13 +36,13 @@ fasttext_model_vocab_label = 'Fasttext Model 2M Vocabulary Words'
 
 def select_word_index(norms: ndarray, tfs: ndarray, min_count: int, max_count: int, min_norm: float, max_norm: float) -> int:
     mask = (max_norm > norms) & (norms > min_norm) & (max_count > tfs) & (tfs > min_count)
-    idxs = np.argwhere(mask)[0]
+    idxs = np.argwhere(mask)
     if len(idxs) == 0:
         raise ValueError(f'Not found {min_count}-{max_count}, {min_norm}-{max_norm}.')
 
     else:
-        print(f'idx found: {idxs[0]}')
-        return idxs[0]
+        print(f'idx found: {idxs[0][0]}')
+        return idxs[0][0]
 
 
 def read_mit_10k_words():
@@ -196,6 +196,15 @@ fig.show()
 
 #%% def plot_no_ngram():
 norms, tfs = calc_norms(no_ngram_vector)
+# sorted_idxs = matutils.argsort(norms, reverse=True)
+rnd_word_idx = [
+    # sorted_idxs[400000], sorted_idxs[800000], sorted_idxs[1200000], sorted_idxs[1600000], sorted_idxs[1800000]
+    select_word_index(norms, tfs, 5_000, 10_000, 4, 4.1),
+    select_word_index(norms, tfs, 70_000, 100_000, 10, 11),
+    select_word_index(norms, tfs, 900_000, 1000_000, 4.7, 5),
+    select_word_index(norms, tfs, 3000_000, 4000_000, 4.7, 5),
+    select_word_index(norms, tfs, 15_000_000, 17_000_000, 3, 6.0),
+]
 seaborn.set(style='white', rc={'figure.figsize': (12, 8)})
 fig: Figure = plt.figure()
 plt.title('FastText Word Whole Word Token (no ngram) - TF')
@@ -207,16 +216,6 @@ ax.scatter(tfs, norms, alpha=0.6, edgecolors='none', s=5, label=fasttext_model_v
 
 common_words_norm, common_words_tfs = common_words_norms(no_ngram_vector)
 ax.scatter(common_words_tfs, common_words_norm, alpha=0.8, edgecolors='none', s=5, label=mit_10k_common_label)
-
-# sorted_idxs = matutils.argsort(norms, reverse=True)
-rnd_word_idx = [
-    sorted_idxs[400000], sorted_idxs[800000], sorted_idxs[1200000], sorted_idxs[1600000], sorted_idxs[1800000]
-    # select_word_index(55_000, 70_000, 0.53, 0.6),
-    # select_word_index(70_000, 100_000, 2.4, 2.71),
-    # select_word_index(4600_000, 7000_000, 0.44, 0.47),
-    # select_word_index(4600_000, 7000_000, 1.26, 1.3),
-    # select_word_index(4600_000, 7000_000, 2.4, 2.71)
-]
 
 for i in rnd_word_idx:
     word = wv.index2word[i]
