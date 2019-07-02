@@ -7,7 +7,7 @@ Word2vec vector norms have been show [(Schakel & Wilson, 2015)](http://arxiv.org
 
 # Introduction
 
-FastText embeds words by adding word's n-grams to the word embedding and then normalizes by total token count i.e. <b>fastText(word)<sub></sub> = (v<sub>word</sub> + &Sigma;<sub>g &in; ngrams(word)</sub>v<sub>g</sub>) / (1 + |ngrams(word)|)</b>. However if the word is not present in the dictionary (OOV) only n-grams are used i.e. <b>(&Sigma;<sub>g &in; ngrams(word)</sub>v<sub>g</sub>) / |ngrams(word)|</b>. For purpose of studying OOV words this asymmetry between vocabulary and out of vocabulary words is removed by only utilizing word's n-grams regardless if the word is OOV or not.
+FastText embeds words by adding word's n-grams to the word embedding and then normalizes by total token count i.e. <b>fastText(word)<sub></sub> = (v<sub>word</sub> + &Sigma;<sub>g &isin; ngrams(word)</sub>v<sub>g</sub>) / (1 + |ngrams(word)|)</b>. However if the word is not present in the dictionary (OOV) only n-grams are used i.e. <b>(&Sigma;<sub>g &isin; ngrams(word)</sub>v<sub>g</sub>) / |ngrams(word)|</b>. For purpose of studying OOV words this asymmetry between vocabulary and out of vocabulary words is removed by only utilizing word's n-grams regardless if the word is OOV or not.
 
 In order to study contrast between common english words e.g. "apple" and noise-words (usually some parsing artifacts or unusual tokens with very specific meaning) e.g. "wales-2708" or "G705" [MIT 10K Common words dataset is used](https://www.mit.edu/~ecprice/wordlist.10000).
 
@@ -28,7 +28,7 @@ As mentioned above each FastText vocab word has its vector representation regard
 
 # NG_Norm (N-Grams Times Count Norm)
 
-As mentioned above FastText uses average of word vectors used. However for detection of noise-words number of ngrams seems to useful. For that purpose NG_Norm is defined <b>ng_norm(word)= || &Sigma;<sub>g &in; ngrams(word)</sub>v<sub>g</sub> ||</b>. Using this norm common words are clustered in narrower band on ng_norm axis.
+As mentioned above FastText uses average of word vectors used. However for detection of noise-words number of ngrams seems to useful. For that purpose NG_Norm is defined <b>ng_norm(word)= || &Sigma;<sub>g &isin; ngrams(word)</sub>v<sub>g</sub> ||</b>. Using this norm common words are clustered in narrower band on ng_norm axis.
 
 ![ng_norm-tf](https://raw.githubusercontent.com/vackosar/fasttext-vector-norms-and-oov-words/master/results/ng_norm-tf.png)
 
