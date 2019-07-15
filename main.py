@@ -1,12 +1,9 @@
-import io
-from math import sqrt
 from typing import Callable
 
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import seaborn
-from gensim import matutils
 from gensim.models.fasttext import load_facebook_vectors
 from gensim.models.utils_any2vec import ft_ngram_hashes
 from gensim.test.utils import datapath
@@ -35,14 +32,18 @@ fasttext_model_vocab_label = 'Fasttext Model 2M Vocabulary Words'
 
 
 def select_word_index(norms: ndarray, tfs: ndarray, min_count: int, max_count: int, min_norm: float, max_norm: float) -> int:
+    return select_word_indexes(norms, tfs, min_count, max_count, min_norm, max_norm)[0][0]
+
+
+def select_word_indexes(norms: ndarray, tfs: ndarray, min_count: int, max_count: int, min_norm: float, max_norm: float) -> ndarray:
     mask = (max_norm > norms) & (norms > min_norm) & (max_count > tfs) & (tfs > min_count)
     idxs = np.argwhere(mask)
     if len(idxs) == 0:
         raise ValueError(f'Not found {min_count}-{max_count}, {min_norm}-{max_norm}.')
 
     else:
-        print(f'idx found: {idxs[0][0]}')
-        return idxs[0][0]
+        print(f'idxs found: {idxs[:5]}')
+        return idxs
 
 
 def read_mit_10k_words():
@@ -157,7 +158,6 @@ def no_ngram_vector(word: str) -> ndarray:
 
 #%% def plot_standard_vec_norms():
 norms, tfs = calc_norms(standard_vec)
-sorted_idxs = matutils.argsort(norms, reverse=True)
 
 rnd_word_idx = [
     # sorted_idxs[400000], sorted_idxs[800000], sorted_idxs[1200000], sorted_idxs[1600000], sorted_idxs[1800000]
@@ -192,6 +192,42 @@ ax.legend()
 fig.tight_layout()
 fig.savefig('data/standard_norm-tf.png')
 fig.show()
+
+
+#%% common word cluster samples
+def plot_words(word_idxs: ndarray, plot_title: str, file_name: str):
+    # fig: Figure = plt.figure()
+    # plt.title(f'FastText Norm - TF - {plot_title}')
+    # plt.xlabel(tf_label)
+    # plt.xscale('log')
+    # plt.ylabel('standard norm (Gensim)')
+    # ax: Axes = fig.add_subplot(1, 1, 1)
+    # ax.scatter(tfs, norms, alpha=0.6, edgecolors='none', s=5, label=fasttext_model_vocab_label)
+    # ax.scatter(common_words_tfs, common_words_norm, alpha=0.8, edgecolors='none', s=5, label=mit_10k_common_label)
+    words = []
+    for i in word_idxs:
+        i = i[0]
+        word = wv.index2word[i]
+        tf = wv.vocab[word].count
+        norm = norms[i]
+        # ax.scatter([tf], [norm], alpha=1, edgecolors='black', s=30, label=word)
+        words.append(word)
+    pd.DataFrame(data=dict(word=words)).to_csv(f'data/words-{file_name}.csv', index=False, header=False)
+    # ax.grid(True, which='both')
+    # ax.legend()
+    # fig.tight_layout()
+    # fig.savefig(f'data/standard_norm-tf-{file_name}.png')
+    # fig.show()
+    # plt.clf()
+
+
+# norms, tfs = calc_norms(standard_vec)
+common_words_norm, common_words_tfs = common_words_norms(standard_vec)
+seaborn.set(style='white', rc={'figure.figsize': (12, 8)})
+plot_words(select_word_indexes(common_words_norm, common_words_tfs, 4600_000, 7000_000, 0.44, 0.47)[:20], 'Bottom Right Cluster', 'bottom-right-cluster')
+plot_words(select_word_indexes(common_words_norm, common_words_tfs, 4600_000, 7000_000, 1.26, 1.3)[:20], 'Middle Right Cluster', 'middle-right-cluster')
+plot_words(select_word_indexes(common_words_norm, common_words_tfs, 4600_000, 7000_000, 2.4, 2.71)[:20], 'Top Right Cluster', 'top-right-cluster')
+plot_words(select_word_indexes(common_words_norm, common_words_tfs, 55_000, 70_000, 0.53, 0.6)[:20], 'Bottom Left Cluster', 'bottom-left-cluster')
 
 
 #%% def plot_no_ngram():
