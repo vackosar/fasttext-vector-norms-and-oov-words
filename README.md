@@ -15,10 +15,17 @@ Entire code for this post in available in [this repository in file "main.py"](ht
 
 # Standard Vector Norm
 
-Standard vector norm as defined in Gensim implementation is used in this section. Common words are located mostly on the right in the term-frequency spectrum and clustered in three different areas in the norm spectrum. On both axis common words are clustered approximatelly in 4 areas. In would be interesting to investigate what those clusters correspond to.
+Standard vector norm as defined in Gensim implementation is used in this section. Common words are located mostly on the right in the term-frequency spectrum and clustered in three different areas in the norm spectrum. On both axis common words are clustered approximatelly in 4 areas.
+
 
 ![standard_norm-tf](https://raw.githubusercontent.com/vackosar/fasttext-vector-norms-and-oov-words/master/results/standard_norm-tf.png)
 
+From below samples it is not clear what clusters correspond to:
+
+- bottom left cluster: now, three, month, News, Big, picked, votes, signature, Challenge, Short, trick, Lots, 68, priorities, upgrades
+- bottom right cluster: our, home, game, won, control, law, common, Street, speed, Tuesday, direct, helped, passed, condition, Date, signed
+- middle right cluster: via, companies, necessary, straight, menu, kinds, Championship, relief, periods, Prize, minimal, Rated, 83, wears
+- top right cluster: position, wonderful, shooting, switch, â, Atlantic, ladies, vegetables, tourist, HERE, prescription, upgraded, Evil
 
 # No N-Gram Norm
 
