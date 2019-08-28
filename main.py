@@ -403,6 +403,9 @@ density_histogram = pd.read_csv('data/ng-norm-density-hist.csv')['density'].valu
 bins = np.loadtxt('data/hist-bins.txt')
 
 text = 'inflationlithium'
+# text = 'goldtwenty'
+# text = 'goldvector'
+
 splits = word_split_probability(text, density_histogram, bins)
 with pd.option_context('display.max_rows', None, 'display.max_columns', None):  # more options can be specified also
     print(splits)
