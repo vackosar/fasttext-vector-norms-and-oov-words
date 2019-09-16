@@ -1,4 +1,4 @@
-from typing import Callable
+from typing import Callable, Tuple
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -298,22 +298,65 @@ fig.show()
 
 #%% list norms for hypernyms (hypo)
 
-df = pd.DataFrame(columns=['word', 'standard_norm', 'no_gram_norm', 'ng_norm'])
-for i, word in enumerate([
-    'month', 'January', 'February',
-    'color', 'red', 'blue',
-    'animal', 'dog', 'cat',
-    'tool', 'hammer', 'screwdriver',
-    'fruit', 'banana', 'apple'
-]):
+def get_norm_tuple(word: str):
     vocab_word = wv.vocab[word]
-    tf = vocab_word.count
     standard_norm = LA.norm(standard_vec(word))
     no_ngram_norm = LA.norm(no_ngram_vector(word))
     ng_norm = LA.norm(custom_vec(word))
-    df.loc[df.shape[0]] = (word, standard_norm, no_ngram_norm, ng_norm)
+    return (word, standard_norm, no_ngram_norm, ng_norm)
 
-print(df)
+def rel_perc_diff(val1, val2):
+    return (val1 - val2) / abs(val1 + val2) * 2 * 100
+
+all_norms = pd.DataFrame(columns=['word', 'standard_norm', 'no_ngram_norm', 'ng_norm'])
+hypo_norm_rel_perc_diff = pd.DataFrame(columns=['hyper', 'hypo', 'standard_norm', 'no_ngram_norm', 'ng_norm'])
+for hypernyme, hyponymes in {
+    'month': ['January', 'February', 'March', 'April', 'May', 'June', 'July'],
+    'color': ['red', 'blue', 'green', 'white', 'orange', 'purple'],
+    'animal': ['dog', 'cat', 'bird', 'reptile', 'fish'],
+    'tool': ['hammer', 'screwdriver', 'drill', 'saw'],
+    'fruit': ['banana', 'apple', 'pear', 'peach', 'orange']
+}.items():
+    hyper_norms = get_norm_tuple(hypernyme)
+    all_norms.loc[all_norms.shape[0]] = hyper_norms
+    for hyponyme in hyponymes:
+        hypo_norms = get_norm_tuple(hyponyme)
+        all_norms.loc[all_norms.shape[0]] = hypo_norms
+        hypo_norm_rel_perc_diff.loc[hypo_norm_rel_perc_diff.shape[0]] = (
+            hypernyme,
+            hyponyme,
+            rel_perc_diff(hypo_norms[1], hyper_norms[1]),
+            rel_perc_diff(hypo_norms[2], hyper_norms[2]),
+            rel_perc_diff(hypo_norms[3], hyper_norms[3])
+        )
+
+hypo_norm_rel_perc_diff.loc[hypo_norm_rel_perc_diff.shape[0]] = (
+    'average',
+    '',
+    hypo_norm_rel_perc_diff['standard_norm'].mean(),
+    hypo_norm_rel_perc_diff['no_ngram_norm'].mean(),
+    hypo_norm_rel_perc_diff['ng_norm'].mean(),
+)
+
+
+hypo_norm_rel_perc_diff.loc[hypo_norm_rel_perc_diff.shape[0]] = (
+    'average',
+    '',
+    np.argwhere(hypo_norm_rel_perc_diff['standard_norm'] > 0).shape[0] / hypo_norm_rel_perc_diff.shape[0] * 100,
+    np.argwhere(hypo_norm_rel_perc_diff['no_ngram_norm'] > 0).shape[0] / hypo_norm_rel_perc_diff.shape[0] * 100,
+    np.argwhere(hypo_norm_rel_perc_diff['ng_norm'] > 0).shape[0] / hypo_norm_rel_perc_diff.shape[0] * 100,
+)
+
+
+pd.set_option('display.max_rows', 500)
+pd.set_option('display.max_columns', 500)
+pd.set_option('display.width', 1000)
+
+print('all norms')
+print(all_norms)
+print()
+print('rel perc norm diff')
+print(hypo_norm_rel_perc_diff)
 
 
 #%% def plot_custom_vec_norms():
