@@ -315,7 +315,9 @@ for hypernyme, hyponymes in {
     'color': ['red', 'blue', 'green', 'white', 'orange', 'purple'],
     'animal': ['dog', 'cat', 'bird', 'reptile', 'fish'],
     'tool': ['hammer', 'screwdriver', 'drill', 'saw'],
-    'fruit': ['banana', 'apple', 'pear', 'peach', 'orange']
+    'fruit': ['banana', 'apple', 'pear', 'peach', 'orange'],
+    'flower': ['peony', 'rose', 'lily', 'tulip'],
+    'tree': ['pine', 'pear', 'maple', 'oak']
 }.items():
     hyper_norms = get_norm_tuple(hypernyme)
     all_norms.loc[all_norms.shape[0]] = hyper_norms
