@@ -86,5 +86,5 @@ NG_Norm shows that n-gram count could be potentially useful feature and that sim
 # References
 
 - [Piotr  Bojanowski,   Edouard  Grave,   Armand  Joulin,and  Tomas  Mikolov.  2016.    Enriching  word  vec-tors  with  subword  information. arXiv preprint arXiv:1607.04606.](https://arxiv.org/abs/1607.04606)
-- [Adriaan M. J. Schakel and Benjamin J Wilson.  Measuring Word Significance using DistributedRepresentations of Words. aug 2015. http://arxiv.org/abs/1508.02297](http://arxiv.org/abs/1508.02297).
+- [Adriaan M. J. Schakel and Benjamin J Wilson.  Measuring Word Significance using Distributed Representations of Words. aug 2015. http://arxiv.org/abs/1508.02297](http://arxiv.org/abs/1508.02297).
 - [Vitalii  Zhelezniak,  Aleksandar  Savkov,  April  Shen,Francesco  Moramarco,   Jack  Flann,   and  Nils  Y.Hammerla. 2019.   Don’t settle for average,  go for the max:  Fuzzy sets and max-pooled word vectors. In International Conference on Learning Representations.](https://arxiv.org/abs/1904.13264)

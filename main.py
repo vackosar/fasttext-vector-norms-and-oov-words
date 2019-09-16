@@ -194,6 +194,34 @@ fig.savefig('data/standard_norm-tf.png')
 fig.show()
 
 
+#%% plot standard-norm of hyper-nyms
+norms, tfs = calc_norms(standard_vec)
+
+seaborn.set(style='white', rc={'figure.figsize': (12, 8)})
+fig: Figure = plt.figure()
+plt.title('FastText Norm - TF')
+plt.xlabel(tf_label)
+plt.xscale('log')
+plt.ylabel('standard norm (Gensim)')
+ax: Axes = fig.add_subplot(1, 1, 1) #axisbg="1.0")
+ax.scatter(tfs, norms, alpha=0.6, edgecolors='none', s=5, label=fasttext_model_vocab_label)
+
+for word in ['month', 'January', 'February', 'color', 'red', 'blue']:
+             #'animal', 'dog', 'Labrador']:
+    vocab_word = wv.vocab[word]
+    tf = vocab_word.count
+    norm = norms[vocab_word.index]
+    ax.scatter([tf], [norm], alpha=1, edgecolors='black', s=30, label=word)
+
+ax.grid(True, which='both')
+# plt.ylim(0, 40)
+ax.legend()
+fig.tight_layout()
+fig.savefig('data/standard_norm-tf.png')
+fig.show()
+
+
+
 #%% common word cluster samples
 def plot_words(word_idxs: ndarray, plot_title: str, file_name: str):
     # fig: Figure = plt.figure()
@@ -266,6 +294,26 @@ ax.legend()
 fig.tight_layout()
 fig.savefig('data/no_ngram_norm-tf.png')
 fig.show()
+
+
+#%% list norms for hypernyms (hypo)
+
+df = pd.DataFrame(columns=['word', 'standard_norm', 'no_gram_norm', 'ng_norm'])
+for i, word in enumerate([
+    'month', 'January', 'February',
+    'color', 'red', 'blue',
+    'animal', 'dog', 'cat',
+    'tool', 'hammer', 'screwdriver',
+    'fruit', 'banana', 'apple'
+]):
+    vocab_word = wv.vocab[word]
+    tf = vocab_word.count
+    standard_norm = LA.norm(standard_vec(word))
+    no_ngram_norm = LA.norm(no_ngram_vector(word))
+    ng_norm = LA.norm(custom_vec(word))
+    df.loc[df.shape[0]] = (word, standard_norm, no_ngram_norm, ng_norm)
+
+print(df)
 
 
 #%% def plot_custom_vec_norms():
