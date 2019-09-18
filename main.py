@@ -298,23 +298,29 @@ fig.show()
 
 #%% list norms for hypernyms (hypo)
 
+pd.set_option('display.max_rows', 500)
+pd.set_option('display.max_columns', 500)
+pd.set_option('display.width', 1000)
+
+
 def get_norm_tuple(word: str):
-    vocab_word = wv.vocab[word]
     standard_norm = LA.norm(standard_vec(word))
     no_ngram_norm = LA.norm(no_ngram_vector(word))
     ng_norm = LA.norm(custom_vec(word))
-    return (word, standard_norm, no_ngram_norm, ng_norm)
+    count = wv.vocab[word].count
+    return (word, standard_norm, no_ngram_norm, ng_norm, count)
 
 def rel_perc_diff(val1, val2):
     return (val1 - val2) / abs(val1 + val2) * 2 * 100
 
-all_norms = pd.DataFrame(columns=['word', 'standard_norm', 'no_ngram_norm', 'ng_norm'])
-hypo_norm_rel_perc_diff = pd.DataFrame(columns=['hyper', 'hypo', 'standard_norm', 'no_ngram_norm', 'ng_norm'])
+
+all_norms = pd.DataFrame(columns=['word', 'standard_norm', 'no_ngram_norm', 'ng_norm', 'count'])
+hypo_norm_rel_perc_diff = pd.DataFrame(columns=['hyper', 'hypo', 'standard_norm', 'no_ngram_norm', 'ng_norm', 'count'])
 for hypernyme, hyponymes in {
-    'month': ['January', 'February', 'March', 'April', 'May', 'June', 'July'],
-    'color': ['red', 'blue', 'green', 'white', 'orange', 'purple'],
-    'animal': ['dog', 'cat', 'bird', 'reptile', 'fish'],
-    'tool': ['hammer', 'screwdriver', 'drill', 'saw'],
+    'month': ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October'],
+    'color': ['red', 'blue', 'green', 'white', 'orange', 'purple', 'black', 'pink', 'yellow', 'cyan', 'violet'],
+    'animal': ['dog', 'cat', 'bird', 'reptile', 'fish', 'cow', 'insect', 'fly', 'mammal'],
+    'tool': ['hammer', 'screwdriver', 'drill', 'handsaw', 'knife', 'wrench', 'pliers'],
     'fruit': ['banana', 'apple', 'pear', 'peach', 'orange'],
     'flower': ['peony', 'rose', 'lily', 'tulip'],
     'tree': ['pine', 'pear', 'maple', 'oak']
@@ -329,30 +335,46 @@ for hypernyme, hyponymes in {
             hyponyme,
             rel_perc_diff(hypo_norms[1], hyper_norms[1]),
             rel_perc_diff(hypo_norms[2], hyper_norms[2]),
-            rel_perc_diff(hypo_norms[3], hyper_norms[3])
+            rel_perc_diff(hypo_norms[3], hyper_norms[3]),
+            rel_perc_diff(hypo_norms[4], hyper_norms[4])
         )
 
-hypo_norm_rel_perc_diff.loc[hypo_norm_rel_perc_diff.shape[0]] = (
+# print(hypo_norm_rel_perc_diff.loc[lambda df: df['count'].abs() < 50])
+hypo_norm_rel_perc_diff: pd.DataFrame = hypo_norm_rel_perc_diff.loc[lambda df: df['count'].abs() < 40]
+hypo_norm_rel_perc_diff.reset_index(inplace=True, drop=True)
+
+averages = (
     'average',
     '',
     hypo_norm_rel_perc_diff['standard_norm'].mean(),
     hypo_norm_rel_perc_diff['no_ngram_norm'].mean(),
     hypo_norm_rel_perc_diff['ng_norm'].mean(),
+    hypo_norm_rel_perc_diff['count'].mean(),
 )
 
 
-hypo_norm_rel_perc_diff.loc[hypo_norm_rel_perc_diff.shape[0]] = (
-    'average',
+counts =  (
+    'counts',
     '',
     np.argwhere(hypo_norm_rel_perc_diff['standard_norm'] > 0).shape[0] / hypo_norm_rel_perc_diff.shape[0] * 100,
     np.argwhere(hypo_norm_rel_perc_diff['no_ngram_norm'] > 0).shape[0] / hypo_norm_rel_perc_diff.shape[0] * 100,
     np.argwhere(hypo_norm_rel_perc_diff['ng_norm'] > 0).shape[0] / hypo_norm_rel_perc_diff.shape[0] * 100,
+    np.nan,
+)
+
+counts_selected =  (
+    'counts selected',
+    '',
+    hypo_norm_rel_perc_diff.loc[lambda df: (df['standard_norm'] > 0)].shape[0] / hypo_norm_rel_perc_diff.shape[0] * 100,
+    hypo_norm_rel_perc_diff.loc[lambda df: (df['no_ngram_norm'] > 0)].shape[0] / hypo_norm_rel_perc_diff.shape[0] * 100,
+    hypo_norm_rel_perc_diff.loc[lambda df: (df['ng_norm'] > 0)].shape[0] / hypo_norm_rel_perc_diff.shape[0] * 100,
+    np.nan,
 )
 
 
-pd.set_option('display.max_rows', 500)
-pd.set_option('display.max_columns', 500)
-pd.set_option('display.width', 1000)
+hypo_norm_rel_perc_diff.loc[hypo_norm_rel_perc_diff.shape[0]] = averages
+hypo_norm_rel_perc_diff.loc[hypo_norm_rel_perc_diff.shape[0]] = counts
+hypo_norm_rel_perc_diff.loc[hypo_norm_rel_perc_diff.shape[0]] = counts_selected
 
 print('all norms')
 print(all_norms)
