@@ -340,7 +340,7 @@ for hypernyme, hyponymes in {
         )
 
 # print(hypo_norm_rel_perc_diff.loc[lambda df: df['count'].abs() < 50])
-hypo_norm_rel_perc_diff: pd.DataFrame = hypo_norm_rel_perc_diff.loc[lambda df: df['count'].abs() < 40]
+hypo_norm_rel_perc_diff: pd.DataFrame = hypo_norm_rel_perc_diff.loc[lambda df: df['count'].abs() < 30]
 hypo_norm_rel_perc_diff.reset_index(inplace=True, drop=True)
 
 averages = (
