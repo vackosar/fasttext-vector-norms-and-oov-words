@@ -318,11 +318,11 @@ all_norms = pd.DataFrame(columns=['word', 'standard_norm', 'no_ngram_norm', 'ng_
 hypo_norm_rel_perc_diff = pd.DataFrame(columns=['hyper', 'hypo', 'standard_norm', 'no_ngram_norm', 'ng_norm', 'count'])
 for hypernyme, hyponymes in {
     'month': ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October'],
-    'color': ['red', 'blue', 'green', 'white', 'orange', 'purple', 'black', 'pink', 'yellow', 'cyan', 'violet'],
+    'color': ['red', 'blue', 'green', 'white', 'orange', 'purple', 'black', 'pink', 'yellow', 'cyan', 'violet', 'grey'],
     'animal': ['dog', 'cat', 'bird', 'reptile', 'fish', 'cow', 'insect', 'fly', 'mammal'],
     'tool': ['hammer', 'screwdriver', 'drill', 'handsaw', 'knife', 'wrench', 'pliers'],
-    'fruit': ['banana', 'apple', 'pear', 'peach', 'orange'],
-    'flower': ['peony', 'rose', 'lily', 'tulip'],
+    'fruit': ['banana', 'apple', 'pear', 'peach', 'orange', 'pineapple', 'lemon', 'pomegranate', 'grape', 'strawberries'],
+    'flower': ['peony', 'rose', 'lily', 'tulip', 'sunflower', 'marigold', 'orchid'],
     'tree': ['pine', 'pear', 'maple', 'oak']
 }.items():
     hyper_norms = get_norm_tuple(hypernyme)
