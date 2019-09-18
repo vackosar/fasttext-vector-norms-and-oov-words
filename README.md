@@ -29,7 +29,7 @@ From below samples it is not clear what clusters correspond to:
 
 # No N-Gram Norm
 
-As mentioned above each FastText vocab word has its vector representation regardless its size. Norms of those vectors are plotted in this section. The shape of the distribution seems to match closely the shape of the same plot for Word2Vec [(Schakel & Wilson, 2015)](http://arxiv.org/abs/1508.02297). The vector norm as measure of word significance seems to hold even for FastText in terms of this norm as can be seen from labeled samples in the scatter plot.
+As mentioned above each FastText vocab word has its vector representation regardless its size. Norms of those vectors are plotted in this section. The shape of the distribution seems to match closely the shape of the same plot for Word2Vec [(Schakel & Wilson, 2015)](http://arxiv.org/abs/1508.02297). The vector norm as measure of word significance seems to hold even for FastText in terms of this norm as can be seen from labeled samples in the scatter plot (same frequency bin with increasing vector norm: authors, Alfine, numbertel).
 ![no_ngram_norm-tf](https://raw.githubusercontent.com/vackosar/fasttext-vector-norms-and-oov-words/master/results/no_ngram_norm-tf.png)
 
 
