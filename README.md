@@ -82,6 +82,8 @@ No-N-Gram Norm has very similar Norm-TF distribution as Word2Vec shown in [(Scha
 
 NG_Norm shows that n-gram count could be potentially useful feature and that simple averaging over n-gram vectors may not be optimal. Perhaps some approach akin to [(Zhelezniak et al., 2019)](https://arxiv.org/abs/1904.13264) could be used.
 
+- [See my blog for more articles like this or mail me at admin@vaclavkosar.com](https://vaclavkosar.com)
+
 
 # References
 
