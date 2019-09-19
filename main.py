@@ -72,7 +72,7 @@ def common_words_norms(get_vec: Callable):
     return norms, tfs
 
 
-def custom_vec(w: str):
+def ng_norm_vec(w: str):
     word_vec = np.zeros(wv.vectors_ngrams.shape[1], dtype=np.float32)
     ngram_hashes = ft_ngram_hashes(w, wv.min_n, wv.max_n, wv.bucket, wv.compatible_hash)
     for nh in ngram_hashes:
@@ -118,8 +118,8 @@ def calc_norms(get_vec: Callable):
 
 
 def common_word_norm_density_histogram() -> (ndarray, ndarray):
-    common_norms, _ = common_words_norms(custom_vec)
-    norms, _ = calc_norms(custom_vec)
+    common_norms, _ = common_words_norms(ng_norm_vec)
+    norms, _ = calc_norms(ng_norm_vec)
     bins = np.linspace(0, 13, 300)
     norm_histogram, _ = np.histogram(norms, bins)
     norm_histogram[0] = 1
@@ -148,7 +148,7 @@ def histogram_val(histogram: ndarray, bins: ndarray, value: float) -> float:
     return histogram[np.digitize(value, bins)]
 
 
-def no_ngram_vector(word: str) -> ndarray:
+def no_ngram_vec(word: str) -> ndarray:
     if word in wv.vocab:
         return wv.vectors_vocab[wv.vocab[word].index]
 
@@ -259,7 +259,7 @@ plot_words(select_word_indexes(common_words_norm, common_words_tfs, 55_000, 70_0
 
 
 #%% def plot_no_ngram():
-norms, tfs = calc_norms(no_ngram_vector)
+norms, tfs = calc_norms(no_ngram_vec)
 # sorted_idxs = matutils.argsort(norms, reverse=True)
 rnd_word_idx = [
     # sorted_idxs[400000], sorted_idxs[800000], sorted_idxs[1200000], sorted_idxs[1600000], sorted_idxs[1800000]
@@ -279,7 +279,7 @@ plt.ylabel('norm of the whole words without sub-ngrams')
 ax: Axes = fig.add_subplot(1, 1, 1) #axisbg="1.0")
 ax.scatter(tfs, norms, alpha=0.6, edgecolors='none', s=5, label=fasttext_model_vocab_label)
 
-common_words_norm, common_words_tfs = common_words_norms(no_ngram_vector)
+common_words_norm, common_words_tfs = common_words_norms(no_ngram_vec)
 ax.scatter(common_words_tfs, common_words_norm, alpha=0.8, edgecolors='none', s=5, label=mit_10k_common_label)
 
 for i in rnd_word_idx:
@@ -305,10 +305,11 @@ pd.set_option('display.width', 1000)
 
 def get_norm_tuple(word: str):
     standard_norm = LA.norm(standard_vec(word))
-    no_ngram_norm = LA.norm(no_ngram_vector(word))
-    ng_norm = LA.norm(custom_vec(word))
+    no_ngram_norm = LA.norm(no_ngram_vec(word))
+    ng_norm = LA.norm(ng_norm_vec(word))
     count = wv.vocab[word].count
     return (word, standard_norm, no_ngram_norm, ng_norm, count)
+
 
 def rel_perc_diff(val1, val2):
     return (val1 - val2) / abs(val1 + val2) * 2 * 100
@@ -317,13 +318,13 @@ def rel_perc_diff(val1, val2):
 all_norms = pd.DataFrame(columns=['word', 'standard_norm', 'no_ngram_norm', 'ng_norm', 'count'])
 hypo_norm_rel_perc_diff = pd.DataFrame(columns=['hyper', 'hypo', 'standard_norm', 'no_ngram_norm', 'ng_norm', 'count'])
 for hypernyme, hyponymes in {
-    'month': ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October'],
+    'month': ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
     'color': ['red', 'blue', 'green', 'white', 'orange', 'purple', 'black', 'pink', 'yellow', 'cyan', 'violet', 'grey'],
     'animal': ['dog', 'cat', 'bird', 'reptile', 'fish', 'cow', 'insect', 'fly', 'mammal'],
     'tool': ['hammer', 'screwdriver', 'drill', 'handsaw', 'knife', 'wrench', 'pliers'],
     'fruit': ['banana', 'apple', 'pear', 'peach', 'orange', 'pineapple', 'lemon', 'pomegranate', 'grape', 'strawberries'],
     'flower': ['peony', 'rose', 'lily', 'tulip', 'sunflower', 'marigold', 'orchid'],
-    'tree': ['pine', 'pear', 'maple', 'oak']
+    'tree': ['pine', 'pear', 'maple', 'oak', 'aspen', 'spruce', 'larch', 'linden', 'juniper', 'birch', 'elm']
 }.items():
     hyper_norms = get_norm_tuple(hypernyme)
     all_norms.loc[all_norms.shape[0]] = hyper_norms
@@ -351,8 +352,7 @@ averages = (
     hypo_norm_rel_perc_diff['count'].mean(),
 )
 
-
-counts =  (
+counts = (
     'counts',
     '',
     np.argwhere(hypo_norm_rel_perc_diff['standard_norm'] > 0).shape[0] / hypo_norm_rel_perc_diff.shape[0] * 100,
@@ -361,7 +361,7 @@ counts =  (
     np.nan,
 )
 
-counts_selected =  (
+counts_selected = (
     'counts selected',
     '',
     hypo_norm_rel_perc_diff.loc[lambda df: (df['standard_norm'] > 0)].shape[0] / hypo_norm_rel_perc_diff.shape[0] * 100,
@@ -381,9 +381,12 @@ print()
 print('rel perc norm diff')
 print(hypo_norm_rel_perc_diff)
 
+hypo_norm_rel_perc_diff.to_html('data/hypo_norm_rel_perc_diff.html')
+hypo_norm_rel_perc_diff.to_csv('data/hypo_norm_rel_perc_diff.csv', index=False)
 
-#%% def plot_custom_vec_norms():
-norms, tfs = calc_norms(custom_vec)
+
+#%% def plot_ng_norm_vec_norms():
+norms, tfs = calc_norms(ng_norm_vec)
 # sorted_idxs = matutils.argsort(norms, reverse=True)
 rnd_word_idx = [
     # sorted_idxs[400000], sorted_idxs[800000], sorted_idxs[1200000], sorted_idxs[1600000], sorted_idxs[1800000]
@@ -405,7 +408,7 @@ plt.ylabel(ng_norm_label)
 ax: Axes = fig.add_subplot(1, 1, 1) #axisbg="1.0")
 ax.scatter(tfs, norms, alpha=0.6, edgecolors='none', s=5, label=fasttext_model_vocab_label)
 
-common_words_norm, common_words_tfs = common_words_norms(custom_vec)
+common_words_norm, common_words_tfs = common_words_norms(ng_norm_vec)
 ax.scatter(common_words_tfs, common_words_norm, alpha=0.8, edgecolors='none', s=5, label=mit_10k_common_label)
 
 for i in rnd_word_idx:
@@ -422,7 +425,7 @@ fig.savefig('data/ng_norm-tf.png')
 fig.show()
 
 # %% def plot_histogram_of_common_and_vocab_ng_norms():
-norms, _ = calc_norms(custom_vec)
+norms, _ = calc_norms(ng_norm_vec)
 print(f'vecs norms avg: {np.average(norms[np.isfinite(norms)], axis=0)}')
 print(f'norms: {norms[0:10].tolist()}')
 seaborn.set(style='white', rc={'figure.figsize': (12, 8)})
@@ -433,7 +436,7 @@ plt.xlabel(tf_label)
 ax: Axes = fig.add_subplot(1, 1, 1) #axisbg="1.0")
 bins = np.linspace(0, 10, 100)
 ax.hist(norms, bins=bins, alpha=0.5, label=fasttext_model_vocab_label, density=True)
-common_norms, _ = common_words_norms(custom_vec)
+common_norms, _ = common_words_norms(ng_norm_vec)
 print(f'common vecs norms avg: {np.average(common_norms[np.isfinite(common_norms)], axis=0)}')
 ax.hist(common_norms, bins=bins, alpha=0.5, label=mit_10k_common_label, density=True)
 ax.grid(True, which='both')
@@ -499,8 +502,8 @@ def word_split_probability(text: str, density_histogram, bins):
         word2 = text[i:]
         df.loc[i, 'word1'] = word1
         df.loc[i, 'word2'] = word2
-        df.loc[i, 'norm1'] = LA.norm(custom_vec(word1))
-        df.loc[i, 'norm2'] = LA.norm(custom_vec(word2))
+        df.loc[i, 'norm1'] = LA.norm(ng_norm_vec(word1))
+        df.loc[i, 'norm2'] = LA.norm(ng_norm_vec(word2))
 
     try:
         df['prob1'] = density_histogram[np.digitize(df['norm1'].values, bins)] * bin_width
