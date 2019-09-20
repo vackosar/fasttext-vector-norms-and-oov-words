@@ -312,11 +312,11 @@ def get_norm_tuple(word: str):
 
 
 def rel_perc_diff(val1, val2):
-    return (val1 - val2) / abs(val1 + val2) * 2 * 100
+    return (val1 - val2) / val2 * 100
 
 
 all_norms = pd.DataFrame(columns=['word', 'standard_norm', 'no_ngram_norm', 'ng_norm', 'count'])
-hypo_norm_rel_perc_diff = pd.DataFrame(columns=['hyper', 'hypo', 'standard_norm', 'no_ngram_norm', 'ng_norm', 'count'])
+hypo_norm_rel_perc_diff = pd.DataFrame(columns=['hyper', 'hypo', 'standard_norm', 'no_ngram_norm', 'ng_norm', 'tf'])
 for hypernyme, hyponymes in {
     'month': ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
     'color': ['red', 'blue', 'green', 'white', 'orange', 'purple', 'black', 'pink', 'yellow', 'cyan', 'violet', 'grey'],
@@ -349,7 +349,7 @@ averages = (
     hypo_norm_rel_perc_diff['standard_norm'].mean(),
     hypo_norm_rel_perc_diff['no_ngram_norm'].mean(),
     hypo_norm_rel_perc_diff['ng_norm'].mean(),
-    hypo_norm_rel_perc_diff['count'].mean(),
+    hypo_norm_rel_perc_diff['tf'].mean(),
 )
 
 counts = (
